@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ArrowUp, ArrowDown, Users, FileText, MessageSquare, Settings, Shield, BarChart3, PlusCircle, Edit, Trash2, Upload } from 'lucide-react';
+import { ArrowUp, ArrowDown, Users, FileText, MessageSquare } from 'lucide-react';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/admin/AppSidebar';
+import { AdminNavbar } from '@/components/admin/AdminNavbar';
 import ContentManager from '@/components/admin/ContentManager';
 import UserManager from '@/components/admin/UserManager';
 import MessagesManager from '@/components/admin/MessagesManager';
@@ -32,14 +34,14 @@ const AdminDashboard = () => {
 
   const statsCards = [
     {
-      title: 'Total Visitors',
+      title: 'Total Visiteurs',
       value: '28,000',
       change: '+12%',
       trend: 'up',
       icon: Users,
     },
     {
-      title: 'Articles Published',
+      title: 'Articles Publiés',
       value: '156',
       change: '+8%',
       trend: 'up',
@@ -53,7 +55,7 @@ const AdminDashboard = () => {
       icon: MessageSquare,
     },
     {
-      title: 'Active Users',
+      title: 'Utilisateurs Actifs',
       value: '2,340',
       change: '+15%',
       trend: 'up',
@@ -61,45 +63,33 @@ const AdminDashboard = () => {
     },
   ];
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      <div className="bg-[#1A535C] text-white p-6 shadow-lg">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">AFAK Admin Dashboard</h1>
-          <p className="text-teal-100">Gérer le contenu et les paramètres de votre site web</p>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white shadow-sm">
-            <TabsTrigger value="overview" className="flex items-center gap-2 text-[#1A535C] data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
-              <BarChart3 className="h-4 w-4" />
-              Aperçu
-            </TabsTrigger>
-            <TabsTrigger value="content" className="flex items-center gap-2 text-[#1A535C] data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
-              <FileText className="h-4 w-4" />
-              Contenu
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 text-[#1A535C] data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
-              <Users className="h-4 w-4" />
-              Utilisateurs
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2 text-[#1A535C] data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
-              <MessageSquare className="h-4 w-4" />
-              Messages
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2 text-[#1A535C] data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
-              <Settings className="h-4 w-4" />
-              Paramètres
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2 text-[#1A535C] data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
-              <Shield className="h-4 w-4" />
-              Sécurité
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'content':
+        return <ContentManager />;
+      case 'users':
+        return <UserManager />;
+      case 'messages':
+        return <MessagesManager />;
+      case 'settings':
+        return (
+          <Card className="bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-[#1A535C]">Paramètres du Site</CardTitle>
+              <CardDescription className="text-[#333333]">
+                Gérer les paramètres généraux de votre site web
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-[#333333]">Configuration des paramètres à venir...</p>
+            </CardContent>
+          </Card>
+        );
+      case 'security':
+        return <SecuritySettings />;
+      default:
+        return (
+          <div className="space-y-6">
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {statsCards.map((stat, index) => (
@@ -189,40 +179,29 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </div>
+        );
+    }
+  };
 
-          <TabsContent value="content">
-            <ContentManager />
-          </TabsContent>
-
-          <TabsContent value="users">
-            <UserManager />
-          </TabsContent>
-
-          <TabsContent value="messages">
-            <MessagesManager />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <Card className="bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-[#1A535C]">Paramètres du Site</CardTitle>
-                <CardDescription className="text-[#333333]">
-                  Gérer les paramètres généraux de votre site web
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-[#333333]">Configuration des paramètres à venir...</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="security">
-            <SecuritySettings />
-          </TabsContent>
-        </Tabs>
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-white">
+        <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <SidebarInset className="flex-1">
+          <AdminNavbar />
+          
+          <main className="flex-1 p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsContent value={activeTab} className="mt-0">
+                {renderContent()}
+              </TabsContent>
+            </Tabs>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
