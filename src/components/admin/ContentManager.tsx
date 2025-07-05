@@ -105,7 +105,7 @@ const ContentManager = () => {
     const fetchInitiatives = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:8080/admin/initiatives/get-all-initiatives');
+        const response = await axios.get('http://localhost:8080/api/initiatives/get-all-initiatives');
         const data = response.data;
         const mapped = data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
@@ -196,13 +196,13 @@ const ContentManager = () => {
         if (data.file) {
           const imageData = new FormData();
           imageData.append('file', data.file);
-          const uploadResponse = await axios.post('http://localhost:8080/admin/initiatives/upload-image-initiative', imageData, {
+          const uploadResponse = await axios.post('http://localhost:8080/api/initiatives/upload-image-initiative', imageData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
           imageUrl = uploadResponse.data.imageUrl;
         }
 
-        const response = await axios.post('http://localhost:8080/admin/initiatives/create-new-initiative', {
+        const response = await axios.post('http://localhost:8080/api/initiatives/create-new-initiative', {
           title: data.title,
           subTitle: data.subTitle,
           content: data.content,
@@ -300,7 +300,7 @@ const ContentManager = () => {
         await axios.delete(`http://localhost:8080/api/ressources/${item.id}`);
         setResources(resources.filter((r) => r.id !== item.id));
       } else if (item.type === 'project') {
-        await axios.delete(`http://localhost:8080/admin/initiatives/${item.id}`);
+        await axios.delete(`http://localhost:8080/api/initiatives/delete-initiative/${item.id}`);
         setProjects(projects.filter((p) => p.id !== item.id));
       }
       toast({ title: 'Supprimé', description: `"${item.title}" a été supprimé.` });

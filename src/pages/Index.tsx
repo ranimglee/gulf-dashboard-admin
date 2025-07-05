@@ -10,7 +10,7 @@ const Index = () => {
       {/* Header */}
       <div className="bg-[#1A535C] text-white p-8 shadow-lg">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl font-bold mb-4">AFAK Admin Portal</h1>
+          <h1 className="text-4xl font-bold mb-4">AFAQ Admin Portal</h1>
           <p className="text-xl text-teal-100 mb-6">
             Interface d'administration pour la gestion du contenu web
           </p>
@@ -146,7 +146,7 @@ const Index = () => {
           <CardContent className="p-12">
             <h2 className="text-3xl font-bold mb-4">Prêt à commencer ?</h2>
             <p className="text-xl mb-6 text-teal-100">
-              Accédez au tableau de bord administrateur pour gérer votre site AFAK
+              Accédez au tableau de bord administrateur pour gérer votre site AFAQ
             </p>
             <Link to="/admin">
               <Button className="bg-[#F7B32B] hover:bg-[#F7B32B]/90 text-[#333333] px-8 py-3 text-lg">

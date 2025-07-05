@@ -27,7 +27,7 @@ const UserManager = () => {
     {
       id: '1',
       name: 'Ahmed Al-Rashid',
-      email: 'ahmed@afak.kw',
+      email: 'ahmed@afaq.kw',
       role: 'admin',
       status: 'active',
       lastLogin: '2024-03-15',
@@ -36,7 +36,7 @@ const UserManager = () => {
     {
       id: '2',
       name: 'Sarah Hassan',
-      email: 'sarah@afak.kw',
+      email: 'sarah@afaq.kw',
       role: 'editor',
       status: 'active',
       lastLogin: '2024-03-14',
@@ -45,7 +45,7 @@ const UserManager = () => {
     {
       id: '3',
       name: 'Omar Al-Sabah',
-      email: 'omar@afak.kw',
+      email: 'omar@afaq.kw',
       role: 'viewer',
       status: 'inactive',
       lastLogin: '2024-03-10',

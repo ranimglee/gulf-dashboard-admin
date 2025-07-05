@@ -73,7 +73,7 @@ const Login = () => {
           <div className="w-16 h-16 bg-[#1A535C] rounded-lg flex items-center justify-center mx-auto mb-4">
             <Shield className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-[#1A535C] mb-2">AFAK Admin</h1>
+          <h1 className="text-3xl font-bold text-[#1A535C] mb-2">AFAQ Admin</h1>
           <p className="text-[#333333]">Connectez-vous à votre espace administrateur</p>
         </div>
 
@@ -91,7 +91,7 @@ const Login = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@afak.com"
+                  placeholder="admin@afaq.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -132,7 +132,7 @@ const Login = () => {
         </Card>
 
         <div className="text-center mt-8 text-sm text-[#333333]">
-          <p>© 2024 AFAK. Tous droits réservés.</p>
+          <p>© 2024 AFAQ. Tous droits réservés.</p>
         </div>
       </div>
       <ToastContainer position="top-right" autoClose={3000} />

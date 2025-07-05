@@ -49,7 +49,7 @@ const Register = () => {
           <div className="w-16 h-16 bg-[#1A535C] rounded-lg flex items-center justify-center mx-auto mb-4">
             <User className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-[#1A535C] mb-2">AFAK Admin</h1>
+          <h1 className="text-3xl font-bold text-[#1A535C] mb-2">AFAQ Admin</h1>
           <p className="text-[#333333]">Créez votre compte administrateur</p>
         </div>
 
@@ -105,7 +105,7 @@ const Register = () => {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="admin@afak.com"
+                  placeholder="admin@afaq.com"
                   value={formData.email}
                   onChange={handleInputChange}
                   className="border-[#E5E7EB] focus:border-[#1A535C]"
@@ -187,7 +187,7 @@ const Register = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-[#333333]">
-          <p>© 2024 AFAK. Tous droits réservés.</p>
+          <p>© 2024 AFAQ. Tous droits réservés.</p>
         </div>
       </div>
     </div>

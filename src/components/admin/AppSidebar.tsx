@@ -65,7 +65,7 @@ export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
             </div>
             {!isCollapsed && (
               <div>
-                <h2 className="font-bold text-[#1A535C]">AFAK</h2>
+                <h2 className="font-bold text-[#1A535C]">AFAQ</h2>
                 <p className="text-xs text-[#333333]">Admin Portal</p>
               </div>
             )}

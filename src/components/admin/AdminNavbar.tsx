@@ -49,7 +49,7 @@ localStorage.removeItem('role');
         <SidebarTrigger className="text-[#1A535C]" />
         <div>
           <h1 className="text-xl font-bold text-[#1A535C]">Dashboard Admin</h1>
-          <p className="text-sm text-[#333333]">Gestion du contenu AFAK</p>
+          <p className="text-sm text-[#333333]">Gestion du contenu AFAQ</p>
         </div>
       </div>
 
