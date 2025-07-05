@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -11,8 +10,39 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export function AdminNavbar() {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    try {
+      // Clear client-side authentication data
+      localStorage.removeItem('token');
+localStorage.removeItem('refreshToken');
+localStorage.removeItem('accessToken');
+localStorage.removeItem('role');
+
+
+      // Show success message
+      toast({
+        title: 'Déconnexion réussie',
+        description: 'Vous avez été déconnecté avec succès.',
+      });
+
+      // Redirect to login page
+      navigate('/login');
+    } catch (error: any) {
+      toast({
+        title: 'Erreur de déconnexion',
+        description: 'Échec de la déconnexion. Veuillez réessayer.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <header className="h-16 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
@@ -51,7 +81,10 @@ export function AdminNavbar() {
               <span>Notifications</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="hover:bg-[#F4E1D2] cursor-pointer text-red-600">
+            <DropdownMenuItem
+              className="hover:bg-[#F4E1D2] cursor-pointer text-red-600"
+              onClick={handleLogout}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Déconnexion</span>
             </DropdownMenuItem>

@@ -1,12 +1,12 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { MessageSquare, Search, Mail, Clock, User, Reply, Archive, Trash2 } from 'lucide-react';
+import { MessageSquare, Search, Mail, Clock, User, Reply, Archive, Trash2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 interface Message {
   id: string;
@@ -19,55 +19,86 @@ interface Message {
   priority: 'low' | 'medium' | 'high';
 }
 
+interface Comment {
+  id: string;
+  content: string;
+  author: string;
+  approved: boolean;
+  createdAt: string;
+}
+
 const MessagesManager = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
-
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      name: 'Dr. Khalid Al-Ahmad',
-      email: 'khalid@university.edu.kw',
-      subject: 'Demande de collaboration de recherche',
-      message: 'Bonjour, je suis intéressé par une collaboration sur les technologies émergentes...',
-      date: '2024-03-15',
-      status: 'new',
-      priority: 'high'
-    },
-    {
-      id: '2',
-      name: 'Fatima Al-Zahra',
-      email: 'fatima@company.com',
-      subject: 'Question sur les services AFAK',
-      message: 'Pouvez-vous me fournir plus d\'informations sur vos services de consultation...',
-      date: '2024-03-14',
-      status: 'read',
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      name: 'Mohammed Hassan',
-      email: 'mohammed@startup.kw',
-      subject: 'Partenariat technologique',
-      message: 'Notre startup développe des solutions IoT et nous aimerions explorer...',
-      date: '2024-03-13',
-      status: 'replied',
-      priority: 'medium'
-    }
+    
   ]);
+  const [pendingComments, setPendingComments] = useState<Comment[]>([]);
+  const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch Pending Comments
+  useEffect(() => {
+    const fetchPendingComments = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get('http://localhost:8080/api/comments/pending');
+        setPendingComments(response.data.map((comment: any) => ({
+          id: comment.id,
+          content: comment.content,
+          author: comment.author,
+          approved: comment.approved,
+          createdAt: comment.createdAt.split('T')[0], // Format date
+        })));
+      } catch (error: any) {
+        toast({
+          title: 'Erreur de chargement',
+          description: error.response?.data?.message || 'Impossible de récupérer les commentaires en attente.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPendingComments();
+  }, []);
+
+  // Approve Comment
+  const handleApproveComment = async (commentId: string) => {
+    try {
+      await axios.put(`http://localhost:8080/api/comments/approve/${commentId}`);
+      setPendingComments(pendingComments.filter(comment => comment.id !== commentId));
+      if (selectedComment?.id === commentId) {
+        setSelectedComment(null);
+      }
+      toast({
+        title: 'Commentaire approuvé',
+        description: 'Le commentaire a été approuvé avec succès.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.message || 'Échec de l\'approbation du commentaire.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const filteredMessages = messages.filter(message => {
-    const matchesSearch = 
+    const matchesSearch =
       message.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       message.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       message.subject.toLowerCase().includes(searchTerm.toLowerCase());
-    
     const matchesFilter = filterStatus === 'all' || message.status === filterStatus;
-    
     return matchesSearch && matchesFilter;
   });
+
+  const filteredComments = pendingComments.filter(comment =>
+    comment.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    comment.author.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -98,12 +129,12 @@ const MessagesManager = () => {
   };
 
   const handleUpdateMessageStatus = (messageId: string, newStatus: 'new' | 'read' | 'replied' | 'archived') => {
-    setMessages(messages.map(message => 
+    setMessages(messages.map(message =>
       message.id === messageId ? { ...message, status: newStatus } : message
     ));
     toast({
-      title: "Statut mis à jour",
-      description: "Le statut du message a été modifié.",
+      title: 'Statut mis à jour',
+      description: 'Le statut du message a été modifié.',
     });
   };
 
@@ -111,15 +142,15 @@ const MessagesManager = () => {
     setMessages(messages.filter(message => message.id !== messageId));
     setSelectedMessage(null);
     toast({
-      title: "Message supprimé",
-      description: "Le message a été supprimé avec succès.",
+      title: 'Message supprimé',
+      description: 'Le message a été supprimé avec succès.',
     });
   };
 
   const getStatusCounts = () => {
     return {
-      total: messages.length,
-      new: messages.filter(m => m.status === 'new').length,
+      total: messages.length + pendingComments.length,
+      new: messages.filter(m => m.status === 'new').length + pendingComments.length,
       read: messages.filter(m => m.status === 'read').length,
       replied: messages.filter(m => m.status === 'replied').length,
     };
@@ -132,7 +163,7 @@ const MessagesManager = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-[#1A535C]">Gestion des Messages</h2>
-          <p className="text-[#333333]">Gérer les messages et demandes de contact</p>
+          <p className="text-[#333333]">Gérer les messages et commentaires en attente</p>
         </div>
       </div>
 
@@ -149,7 +180,6 @@ const MessagesManager = () => {
             </div>
           </CardContent>
         </Card>
-        
         <Card className="bg-white shadow-sm border-l-4 border-l-[#FF6F61]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -161,7 +191,6 @@ const MessagesManager = () => {
             </div>
           </CardContent>
         </Card>
-        
         <Card className="bg-white shadow-sm border-l-4 border-l-[#F7B32B]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -173,7 +202,6 @@ const MessagesManager = () => {
             </div>
           </CardContent>
         </Card>
-        
         <Card className="bg-white shadow-sm border-l-4 border-l-green-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -194,7 +222,7 @@ const MessagesManager = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#333333] h-4 w-4" />
               <Input
-                placeholder="Rechercher par nom, email ou sujet..."
+                placeholder="Rechercher par nom, email, sujet ou contenu..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 border-[#E5E7EB] focus:border-[#1A535C]"
@@ -230,53 +258,95 @@ const MessagesManager = () => {
         </CardContent>
       </Card>
 
-      {/* Messages List */}
+      {/* Messages and Comments List */}
       <Card className="bg-white shadow-sm">
         <CardHeader>
-          <CardTitle className="text-[#1A535C]">Messages ({filteredMessages.length})</CardTitle>
+          <CardTitle className="text-[#1A535C]">Messages et Commentaires ({filteredMessages.length + (filterStatus === 'new' || filterStatus === 'all' ? filteredComments.length : 0)})</CardTitle>
           <CardDescription className="text-[#333333]">
-            Liste des messages reçus avec leurs statuts
+            Liste des messages et commentaires en attente
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="space-y-2">
-            {filteredMessages.map((message) => (
-              <div
-                key={message.id}
-                className="p-4 border-b border-[#E5E7EB] hover:bg-[#F4E1D2] cursor-pointer transition-colors"
-                onClick={() => setSelectedMessage(message)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <User className="h-4 w-4 text-[#1A535C]" />
-                      <span className="font-medium text-[#1A535C]">{message.name}</span>
-                      <span className="text-sm text-[#333333]">({message.email})</span>
+          {isLoading ? (
+            <div className="text-center py-12">
+              <p className="text-[#1A535C]">Chargement des données...</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {(filterStatus === 'all' || filterStatus === 'new') && filteredComments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="p-4 border-b border-[#E5E7EB] hover:bg-[#F4E1D2] cursor-pointer transition-colors"
+                  onClick={() => setSelectedComment(comment)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <User className="h-4 w-4 text-[#1A535C]" />
+                        <span className="font-medium text-[#1A535C]">{comment.author}</span>
+                      </div>
+                      <p className="text-sm text-[#333333] line-clamp-2">{comment.content}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Clock className="h-4 w-4 text-[#333333]" />
+                        <span className="text-sm text-[#333333]">{comment.createdAt}</span>
+                      </div>
                     </div>
-                    <h4 className="font-medium text-[#333333] mb-1">{message.subject}</h4>
-                    <p className="text-sm text-[#333333] line-clamp-2">{message.message}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Clock className="h-4 w-4 text-[#333333]" />
-                      <span className="text-sm text-[#333333]">{message.date}</span>
+                    <div className="flex flex-col gap-2 ml-4">
+                      <Badge className="bg-[#FF6F61] text-white">En attente</Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering dialog
+                          handleApproveComment(comment.id);
+                        }}
+                        className="border-[#1A535C] text-[#1A535C] hover:bg-[#1A535C] hover:text-white"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Approuver
+                      </Button>
                     </div>
-                  </div>
-                  <div className="flex flex-col gap-2 ml-4">
-                    <Badge className={getStatusBadgeColor(message.status)}>
-                      {message.status === 'new' && 'Nouveau'}
-                      {message.status === 'read' && 'Lu'}
-                      {message.status === 'replied' && 'Répondu'}
-                      {message.status === 'archived' && 'Archivé'}
-                    </Badge>
-                    <Badge className={getPriorityBadgeColor(message.priority)}>
-                      {message.priority === 'high' && 'Haute'}
-                      {message.priority === 'medium' && 'Moyenne'}
-                      {message.priority === 'low' && 'Basse'}
-                    </Badge>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+              {filteredMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className="p-4 border-b border-[#E5E7EB] hover:bg-[#F4E1D2] cursor-pointer transition-colors"
+                  onClick={() => setSelectedMessage(message)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <User className="h-4 w-4 text-[#1A535C]" />
+                        <span className="font-medium text-[#1A535C]">{message.name}</span>
+                        <span className="text-sm text-[#333333]">({message.email})</span>
+                      </div>
+                      <h4 className="font-medium text-[#333333] mb-1">{message.subject}</h4>
+                      <p className="text-sm text-[#333333] line-clamp-2">{message.message}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Clock className="h-4 w-4 text-[#333333]" />
+                        <span className="text-sm text-[#333333]">{message.date}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 ml-4">
+                      <Badge className={getStatusBadgeColor(message.status)}>
+                        {message.status === 'new' && 'Nouveau'}
+                        {message.status === 'read' && 'Lu'}
+                        {message.status === 'replied' && 'Répondu'}
+                        {message.status === 'archived' && 'Archivé'}
+                      </Badge>
+                      <Badge className={getPriorityBadgeColor(message.priority)}>
+                        {message.priority === 'high' && 'Haute'}
+                        {message.priority === 'medium' && 'Moyenne'}
+                        {message.priority === 'low' && 'Basse'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -313,19 +383,16 @@ const MessagesManager = () => {
                   </Badge>
                 </div>
               </div>
-              
               <div>
                 <label className="text-sm font-medium text-[#333333]">Sujet</label>
                 <p className="text-[#1A535C] font-medium">{selectedMessage.subject}</p>
               </div>
-              
               <div>
                 <label className="text-sm font-medium text-[#333333]">Message</label>
                 <div className="bg-[#F4E1D2] p-4 rounded-lg">
                   <p className="text-[#333333] whitespace-pre-wrap">{selectedMessage.message}</p>
                 </div>
               </div>
-              
               <div className="flex justify-between pt-4">
                 <div className="space-x-2">
                   <Button
@@ -359,6 +426,65 @@ const MessagesManager = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => handleDeleteMessage(selectedMessage.id)}
+                  className="border-[#FF6F61] text-[#FF6F61] hover:bg-[#FF6F61] hover:text-white"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Supprimer
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Comment Details Dialog */}
+      {selectedComment && (
+        <Dialog open={!!selectedComment} onOpenChange={() => setSelectedComment(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="text-[#1A535C]">Détails du Commentaire</DialogTitle>
+              <DialogDescription className="text-[#333333]">
+                Commentaire de {selectedComment.author}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-[#333333]">Auteur</label>
+                  <p className="text-[#1A535C] font-medium">{selectedComment.author}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#333333]">Date</label>
+                  <p className="text-[#333333]">{selectedComment.createdAt}</p>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#333333]">Contenu</label>
+                <div className="bg-[#F4E1D2] p-4 rounded-lg">
+                  <p className="text-[#333333] whitespace-pre-wrap">{selectedComment.content}</p>
+                </div>
+              </div>
+              <div className="flex justify-between pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleApproveComment(selectedComment.id)}
+                  className="border-[#1A535C] text-[#1A535C] hover:bg-[#1A535C] hover:text-white"
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Approuver
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPendingComments(pendingComments.filter(comment => comment.id !== selectedComment.id));
+                    setSelectedComment(null);
+                    toast({
+                      title: 'Commentaire supprimé',
+                      description: 'Le commentaire a été supprimé avec succès.',
+                    });
+                  }}
                   className="border-[#FF6F61] text-[#FF6F61] hover:bg-[#FF6F61] hover:text-white"
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
