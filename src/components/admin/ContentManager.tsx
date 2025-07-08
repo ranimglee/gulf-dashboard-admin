@@ -65,7 +65,7 @@ const ContentManager = () => {
     const fetchArticles = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:8080/api/articles');
+        const response = await axios.get('https://blog-production-5144.up.railway.app/api/articles');
         const fetchedArticles = response.data.map((item: any) => ({
           id: item.id?.toString() || Date.now().toString(),
           title: item.title,
@@ -93,7 +93,7 @@ const ContentManager = () => {
     const fetchResources = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:8080/api/ressources');
+        const response = await axios.get('https://blog-production-5144.up.railway.app/api/ressources');
         const data = response.data;
         const mapped = data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
@@ -124,7 +124,7 @@ const ContentManager = () => {
     const fetchInitiatives = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:8080/api/initiatives/get-all-initiatives');
+        const response = await axios.get('https://blog-production-5144.up.railway.app/api/initiatives/get-all-initiatives');
         const data = response.data;
         const mapped = data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
@@ -171,7 +171,7 @@ const ContentManager = () => {
         formData.append('category', data.category);
         formData.append('fileType', data.fileType);
 
-        const response = await axios.post('http://localhost:8080/api/ressources/upload', formData, {
+        const response = await axios.post('https://blog-production-5144.up.railway.app/api/ressources/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
@@ -215,13 +215,13 @@ const ContentManager = () => {
         if (data.file) {
           const imageData = new FormData();
           imageData.append('file', data.file);
-          const uploadResponse = await axios.post('http://localhost:8080/api/initiatives/upload-image-initiative', imageData, {
+          const uploadResponse = await axios.post('https://blog-production-5144.up.railway.app/api/initiatives/upload-image-initiative', imageData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
           imageUrl = uploadResponse.data.imageUrl;
         }
 
-        const response = await axios.post('http://localhost:8080/api/initiatives/create-new-initiative', {
+        const response = await axios.post('https://blog-production-5144.up.railway.app/api/initiatives/create-new-initiative', {
           title: data.title,
           subTitle: data.subTitle,
           content: data.content,
@@ -271,13 +271,13 @@ const ContentManager = () => {
       if (data.file) {
         const imageData = new FormData();
         imageData.append('file', data.file);
-        const uploadResponse = await axios.post('http://localhost:8080/api/articles/upload-image', imageData, {
+        const uploadResponse = await axios.post('https://blog-production-5144.up.railway.app/api/articles/upload-image', imageData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         imageUrl = uploadResponse.data.imageUrl;
       }
 
-      const response = await axios.post('http://localhost:8080/api/articles', {
+      const response = await axios.post('https://blog-production-5144.up.railway.app/api/articles', {
         title: data.title,
         description: data.description,
         auteur: data.auteur,
@@ -313,13 +313,13 @@ const ContentManager = () => {
   const handleDeleteItem = async (item: ContentItem) => {
     try {
       if (item.type === 'article') {
-        await axios.delete(`http://localhost:8080/api/articles/${item.id}`);
+        await axios.delete(`https://blog-production-5144.up.railway.app/api/articles/${item.id}`);
         setArticles(articles.filter((a) => a.id !== item.id));
       } else if (item.type === 'resource') {
-        await axios.delete(`http://localhost:8080/api/ressources/${item.id}`);
+        await axios.delete(`https://blog-production-5144.up.railway.app/api/ressources/${item.id}`);
         setResources(resources.filter((r) => r.id !== item.id));
       } else if (item.type === 'project') {
-        await axios.delete(`http://localhost:8080/api/initiatives/delete-initiative/${item.id}`);
+        await axios.delete(`https://blog-production-5144.up.railway.app/api/initiatives/delete-initiative/${item.id}`);
         setProjects(projects.filter((p) => p.id !== item.id));
       }
       toast({ title: 'Supprimé', description: `"${item.title}" a été supprimé.` });
