@@ -23,12 +23,10 @@ import {
 } from '@/components/ui/sidebar';
 
 const navigationItems = [
-  { title: 'Accueil', url: '/', icon: Home },
-  { title: 'Aperçu', url: '/admin', icon: BarChart3, section: 'overview' },
+  { title: 'Dashboard', url: '/admin', icon: BarChart3, section: 'overview' },
   { title: 'Contenu', url: '/admin', icon: FileText, section: 'content' },
   { title: 'Utilisateurs', url: '/admin', icon: Users, section: 'users' },
   { title: 'Messages', url: '/admin', icon: MessageSquare, section: 'messages' },
-  { title: 'Paramètres', url: '/admin', icon: Settings, section: 'settings' },
   { title: 'Sécurité', url: '/admin', icon: Shield, section: 'security' },
 ];
 

@@ -9,6 +9,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Edit, Trash2, Upload, FileText, Image, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
+import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill';
+
+const modules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'align': [] }],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['clean']
+  ],
+};
+
+const formats = [
+  'header', 'bold', 'italic', 'underline', 
+  'color', 'background', 'align', 
+  'list', 'bullet'
+];
 
 interface ContentItem {
   id: string;
@@ -371,7 +390,7 @@ const ContentManager = () => {
           });
         }
       }}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-[#1A535C]">
               Créer un nouveau {selectedTab.slice(0, -1)}
@@ -424,12 +443,13 @@ const ContentManager = () => {
                 </div>
                 <div>
                   <Label>Contenu</Label>
-                  <Textarea
-                    rows={5}
-                    value={formData.contenu}
-                    onChange={(e) => setFormData({ ...formData, contenu: e.target.value })}
-                    required
-                  />
+                 <ReactQuill
+  theme="snow"
+  value={formData.contenu}
+  onChange={(value) => setFormData({ ...formData, contenu: value })}
+  modules={modules}
+  formats={formats}
+/>
                 </div>
                 <div>
                   <Label>Image (optionnel)</Label>
@@ -451,14 +471,18 @@ const ContentManager = () => {
                     required
                   />
                 </div>
+    
+
                 <div>
                   <Label>Contenu</Label>
-                  <Textarea
-                    rows={5}
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    required
-                  />
+                 <ReactQuill
+  theme="snow"
+  value={formData.contenu}
+  onChange={(value) => setFormData({ ...formData, contenu: value })}
+  modules={modules}
+  formats={formats}
+/>
+
                 </div>
                 <div>
                   <Label>Pays</Label>
