@@ -44,7 +44,7 @@ const MessagesManager = () => {
     const fetchPendingComments = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('https://blog-production-5144.up.railway.app/api/comments/pending');
+        const response = await axios.get('https://preview--gulf-dashboard-admin.lovable.app/api/comments/pending');
         setPendingComments(response.data.map((comment: any) => ({
           id: comment.id,
           content: comment.content,
@@ -68,7 +68,7 @@ const MessagesManager = () => {
   // Approve Comment
   const handleApproveComment = async (commentId: string) => {
     try {
-      await axios.put(`https://blog-production-5144.up.railway.app/api/comments/approve/${commentId}`);
+      await axios.put(`https://preview--gulf-dashboard-admin.lovable.app/api/comments/approve/${commentId}`);
       setPendingComments(pendingComments.filter(comment => comment.id !== commentId));
       if (selectedComment?.id === commentId) {
         setSelectedComment(null);
