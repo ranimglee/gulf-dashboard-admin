@@ -114,7 +114,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
               <Card className="bg-white shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-[#1A535C]">Visiteurs Mensuels</CardTitle>
@@ -123,7 +123,7 @@ const AdminDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={450}>
                     <BarChart data={visitorData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                       <XAxis dataKey="month" stroke="#333333" />
@@ -142,42 +142,7 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-[#1A535C]">Sources de Trafic</CardTitle>
-                  <CardDescription className="text-[#333333]">
-                    Répartition des visiteurs par source
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={trafficData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {trafficData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1A535C', 
-                          border: 'none', 
-                          borderRadius: '8px',
-                          color: 'white'
-                        }} 
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+       
             </div>
           </div>
         );
