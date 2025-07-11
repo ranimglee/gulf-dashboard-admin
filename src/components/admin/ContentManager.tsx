@@ -535,11 +535,26 @@ const ContentManager = () => {
                 </div>
                 <div>
                   <Label>Fichier</Label>
-                  <Input
-                    type="file"
-                    onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
-                    required
-                  />
+                 <Input
+  type="file"
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) { // 50MB
+        toast({
+          title: 'Fichier trop volumineux',
+          description: 'La taille maximale autorisée est de 50 Mo.',
+          variant: 'destructive',
+        });
+        e.target.value = ''; // Reset file input
+        return;
+      }
+      setFormData({ ...formData, file });
+    }
+  }}
+  required
+/>
+
                 </div>
               </>
             )}
