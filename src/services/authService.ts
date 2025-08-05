@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/auth/login';
+const API_URL = 'https://blog-m2jm.onrender.com/auth/login';
 
 export const loginUser = async (data: { email: string; password: string }) => {
   try {
