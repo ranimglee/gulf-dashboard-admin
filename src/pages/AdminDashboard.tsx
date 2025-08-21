@@ -7,7 +7,7 @@ import { ArrowUp, ArrowDown, Users, FileText, MessageSquare } from 'lucide-react
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/admin/AppSidebar';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
-import ContentManager from '@/components/admin/ContentManager';
+import ContentManager from '@/components/admin/content/ContentManager';
 import UserManager from '@/components/admin/UserManager';
 import MessagesManager from '@/components/admin/MessagesManager';
 import SecuritySettings from '@/components/admin/SecuritySettings';
