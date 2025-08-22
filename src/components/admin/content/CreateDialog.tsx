@@ -64,6 +64,8 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
     fileType: 'PDF',
     subTitle: '',
     country: '',
+    language: 'ENGLISH', 
+
   });
    
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,6 +97,8 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
       fileType: 'PDF',
       subTitle: '',
       country: '',
+    language: 'ENGLISH', // ✅ default value
+
     });
     setPreviewImage(null);
   };
@@ -114,6 +118,8 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
           fileType: 'PDF',
           subTitle: '',
           country: '',
+        language: 'ENGLISH', // ✅ default value
+
         });
         setPreviewImage(null);
       }
@@ -232,6 +238,21 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
               </div>
             </>
           )}
+          <div>
+  <Label>Langue</Label>
+  <select
+    className="border p-2 rounded w-full"
+    value={formData.language}
+    onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+    required
+    disabled={isSubmitting}
+  >
+    <option value="ENGLISH">Anglais</option>
+    <option value="FRENCH">Français</option>
+    <option value="ARABIC">Arabe</option>
+  </select>
+</div>
+
           {/* Contenu uniquement pour articles & projets */}
           {selectedTab !== 'resources' && (
             <div>

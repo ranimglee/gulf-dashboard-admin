@@ -57,6 +57,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
     auteur: '',
     type: 'BLOG',
     contenu: '',
+    language: 'ENGLISH', // ✅ added
     file: null as File | null,
     category: 'FINANCE',
     fileType: 'PDF',
@@ -66,23 +67,56 @@ const EditDialog: React.FC<EditDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (item) {
+useEffect(() => {
+  if (item) {
+    if (item.type === 'article') {
+      setFormData({
+        title: item.title || '',
+        description: item.description || '',
+        auteur: item.author || '',
+        type:  'BLOG', 
+        contenu: item.content || '',      
+        language: item.language || 'ENGLISH',
+        file: null,
+        category: '',
+        fileType: '',
+        subTitle: '',
+        country: '',
+      });
+    } else if (item.type === 'project') {
+      setFormData({
+        title: item.title || '',
+        description: '',
+        auteur: '',
+        type: 'BLOG',
+        contenu: item.content || '',   // ✅ use correct backend field
+        language: 'ENGLISH',
+        file: null,
+        category: '',
+        fileType: '',
+        subTitle: item.subTitle || '',
+        country: item.country || '',
+      });
+    } else if (item.type === 'resource') {
       setFormData({
         title: item.title || '',
         description: item.description || '',
         auteur: '',
         type: 'BLOG',
-        contenu: item.description || '',
+        contenu: '',
+        language: 'ENGLISH',
         file: null,
         category: item.category || 'FINANCE',
         fileType: item.fileType || 'PDF',
-        subTitle: item.subTitle || '',
-        country: item.country || '',
+        subTitle: '',
+        country: '',
       });
-      setPreviewImage(item.imageUrl || item.image || null);
     }
-  }, [item]);
+
+    setPreviewImage(item.imageUrl || item.image || null);
+  }
+}, [item]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +137,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
         }
         const imageData = new FormData();
         imageData.append('file', formData.file);
-        
+
         let uploadEndpoint = '';
         if (item.type === 'article') {
           uploadEndpoint = 'https://blog-m2jm.onrender.com/api/articles/upload-image';
@@ -124,15 +158,15 @@ const EditDialog: React.FC<EditDialogProps> = ({
 
       if (item.type === 'article') {
         updateEndpoint = `https://blog-m2jm.onrender.com/api/articles/${item.id}`;
-  updateData = {
-    title: formData.title,
-    description: formData.description,
-    auteur: formData.auteur,        // required
-    type: formData.type,            // required (must match enum: BLOG, NEWS, TUTORIAL, etc.)
-    contenu: formData.contenu,
-    imageUrl: imageUrl || item.imageUrl,  // always required -> fallback to existing
-  };
-
+        updateData = {
+          title: formData.title,
+          description: formData.description,
+          auteur: formData.auteur,
+          type: formData.type,
+          contenu: formData.contenu,
+          language: formData.language, // ✅ include language
+          imageUrl: imageUrl || item.imageUrl,
+        };
       } else if (item.type === 'project') {
         updateEndpoint = `https://blog-m2jm.onrender.com/api/initiatives/update-initiative/${item.id}`;
         updateData = {
@@ -161,6 +195,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
         description: formData.description,
         subTitle: formData.subTitle,
         country: formData.country,
+        language: formData.language, // ✅ save in state
         ...(imageUrl && { imageUrl }),
         ...(imageUrl && { image: imageUrl }),
       };
@@ -243,6 +278,20 @@ const EditDialog: React.FC<EditDialogProps> = ({
                   <option value="TUTORIAL">Tutorial</option>
                   <option value="OPINION">Opinion</option>
                   <option value="REVIEW">Review</option>
+                </select>
+              </div>
+              <div>
+                <Label>Langue</Label>
+                <select
+                  value={formData.language}
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  className="border p-2 rounded w-full"
+                  required
+                  disabled={isSubmitting}
+                >
+                  <option value="ENGLISH">Anglais</option>
+                  <option value="FRENCH">Français</option>
+                  <option value="ARABIC">Arabe</option>
                 </select>
               </div>
             </>

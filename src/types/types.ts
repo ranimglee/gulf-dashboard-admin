@@ -5,8 +5,9 @@ export interface ContentItem {
   id: string;
   title: string;
   description: string;
+  content?:string;
   date: string;
-  status: 'published' | 'draft';
+  author?:string;
   type: 'article' | 'project' | 'resource';
   category?: string;
   fileType?: string;
@@ -14,6 +15,7 @@ export interface ContentItem {
   country?: string;
   imageUrl?: string;
   image?: string;
+  language?: string; // ✅ added missing property
 }
 
 export const typeLabels: Record<string, string> = {

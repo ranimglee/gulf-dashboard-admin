@@ -4,13 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { FileText, Loader2, PlusCircle, Search , Image, Upload} from 'lucide-react';
+import { FileText, Loader2, PlusCircle, Search, Image, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import CreateDialog from './CreateDialog';
 import EditDialog from './EditDialog';
 import ItemCard from './ItemCard';
-import { ContentItem, ToastFunction } from '../../../types/types';
+import { ContentItem } from '../../../types/types';
 import { handleDeleteItem } from '../../../utils/contentUtils';
 
 const ContentManager: React.FC = () => {
@@ -25,6 +25,16 @@ const ContentManager: React.FC = () => {
   const [articleToDelete, setArticleToDelete] = useState<ContentItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('ALL');
+
+  // 🔹 Normalize language (fallback ENGLISH)
+  const normalizeLanguage = (lang: string | undefined): string => {
+    if (!lang) return 'ENGLISH';
+    const l = lang.toLowerCase();
+    if (l.startsWith('fr')) return 'FRENCH';
+    if (l.startsWith('ar')) return 'ARABIC';
+    return 'ENGLISH';
+  };
 
   // Fetch Articles
   useEffect(() => {
@@ -40,10 +50,9 @@ const ContentManager: React.FC = () => {
           status: item.status || 'draft',
           type: 'article',
           imageUrl: item.imageUrl || item.image || null,
+          language: normalizeLanguage(item.language),
         }));
-        setArticles(
-          fetchedArticles.sort((a, b) => b.date.localeCompare(a.date))
-        );
+        setArticles(fetchedArticles.sort((a, b) => b.date.localeCompare(a.date)));
       } catch (error: any) {
         toast({
           title: 'Erreur de chargement',
@@ -59,11 +68,11 @@ const ContentManager: React.FC = () => {
 
   // Fetch Resources
   useEffect(() => {
-    const fetchResources = async () => {
+    const fetchRes = async () => {
       setIsLoading(true);
       try {
         const response = await axios.get('https://blog-m2jm.onrender.com/api/ressources');
-        const fetchResources = response.data.map((res: any) => ({
+        const fetchedResources = response.data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
           title: res.titre,
           description: res.description,
@@ -72,10 +81,9 @@ const ContentManager: React.FC = () => {
           type: 'resource',
           category: res.category,
           fileType: res.fileType,
+          language: normalizeLanguage(res.language),
         }));
-        setResources(
-          fetchResources.sort((a, b) => b.date.localeCompare(a.date))
-        );
+        setResources(fetchedResources.sort((a, b) => b.date.localeCompare(a.date)));
       } catch (error: any) {
         toast({
           title: 'Erreur de chargement',
@@ -86,16 +94,16 @@ const ContentManager: React.FC = () => {
         setIsLoading(false);
       }
     };
-    fetchResources();
+    fetchRes();
   }, [toast]);
 
-  // Fetch Initiatives (Projects)
+  // Fetch Initiatives
   useEffect(() => {
     const fetchInitiatives = async () => {
       setIsLoading(true);
       try {
         const response = await axios.get('https://blog-m2jm.onrender.com/api/initiatives/get-all-initiatives');
-        const fetchInitiatives = response.data.map((res: any) => ({
+        const fetchedInitiatives = response.data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
           title: res.title,
           description: res.subTitle,
@@ -105,10 +113,9 @@ const ContentManager: React.FC = () => {
           subTitle: res.subTitle,
           country: res.country,
           imageUrl: res.imageUrl || res.image || null,
+          language: normalizeLanguage(res.language),
         }));
-        setProjects(
-          fetchInitiatives.sort((a, b) => b.date.localeCompare(a.date))
-        );
+        setProjects(fetchedInitiatives.sort((a, b) => b.date.localeCompare(a.date)));
       } catch (error: any) {
         toast({
           title: 'Erreur de chargement',
@@ -122,15 +129,22 @@ const ContentManager: React.FC = () => {
     fetchInitiatives();
   }, [toast]);
 
+  // Current items with filters
   const getCurrentItems = () => {
-    const items = selectedTab === 'articles' ? articles : selectedTab === 'projects' ? projects : resources;
-    
-    if (!searchTerm) return items;
-    
-    return items.filter(item => 
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let items = selectedTab === 'articles' ? articles : selectedTab === 'projects' ? projects : resources;
+
+    if (selectedLanguage !== 'ALL') {
+      items = items.filter((item) => item.language === selectedLanguage);
+    }
+
+    if (searchTerm) {
+      items = items.filter(
+        (item) =>
+          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    return items;
   };
 
   return (
@@ -140,7 +154,9 @@ const ContentManager: React.FC = () => {
           <h2 className="text-2xl font-bold text-[#1A535C]">Gestion du Contenu</h2>
           <p className="text-gray-600">Gérez vos articles, initiatives et ressources</p>
         </div>
+
         <div className="flex gap-2 w-full sm:w-auto">
+          {/* Search */}
           <div className="relative flex-1 sm:flex-initial">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
@@ -150,6 +166,20 @@ const ContentManager: React.FC = () => {
               className="pl-10 w-full sm:w-64"
             />
           </div>
+
+          {/* Language Filter */}
+          <select
+            className="border rounded-lg px-3 py-2 text-sm"
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+          >
+            <option value="ALL">Toutes les langues</option>
+            <option value="ENGLISH">Anglais</option>
+            <option value="FRENCH">Français</option>
+            <option value="ARABIC">Arabe</option>
+          </select>
+
+          {/* Add button */}
           <Button
             onClick={() => setIsCreateDialogOpen(true)}
             className="bg-[#F7B32B] text-[#333] hover:bg-[#F7B32B]/90 whitespace-nowrap"
@@ -160,28 +190,21 @@ const ContentManager: React.FC = () => {
         </div>
       </div>
 
+      {/* Tabs */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="grid grid-cols-3 bg-[#F4E1D2] w-full">
-          <TabsTrigger
-            value="articles"
-            className="data-[state=active]:bg-[#1A535C] data-[state=active]:text-white"
-          >
+          <TabsTrigger value="articles" className="data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
             <FileText className="w-4 h-4 mr-1" /> Articles
           </TabsTrigger>
-          <TabsTrigger
-            value="projects"
-            className="data-[state=active]:bg-[#1A535C] data-[state=active]:text-white"
-          >
+          <TabsTrigger value="projects" className="data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
             <Image className="w-4 h-4 mr-1" /> Initiatives
           </TabsTrigger>
-          <TabsTrigger
-            value="resources"
-            className="data-[state=active]:bg-[#1A535C] data-[state=active]:text-white"
-          >
+          <TabsTrigger value="resources" className="data-[state=active]:bg-[#1A535C] data-[state=active]:text-white">
             <Upload className="w-4 h-4 mr-1" /> Ressources
           </TabsTrigger>
         </TabsList>
 
+        {/* Tab content */}
         <TabsContent value={selectedTab}>
           {isLoading ? (
             <div className="text-center py-12">
@@ -192,19 +215,16 @@ const ContentManager: React.FC = () => {
             <Card className="bg-[#F4E1D2] border-2 border-dashed border-[#E5E7EB]">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-[#1A535C] mb-4" />
-                <h3 className="text-lg font-semibold text-[#1A535C] mb-2">
-                  Aucun contenu disponible
-                </h3>
+                <h3 className="text-lg font-semibold text-[#1A535C] mb-2">Aucun contenu disponible</h3>
                 <p className="text-[#333333] text-center mb-4">
                   {searchTerm
                     ? `Aucun résultat pour "${searchTerm}"`
-                    : `Commencez par créer votre premier ${selectedTab.slice(0, -1)}.`
-                  }
+                    : `Commencez par créer votre premier ${selectedTab.slice(0, -1)}.`}
                 </p>
                 {!searchTerm && (
                   <Button
                     onClick={() => setIsCreateDialogOpen(true)}
-                    className="bg-[#F7B32B] hover:bg-[#F7B32B]/90 text-[#333333]"
+                    className="bg-[#F7B32B] hover:bg-[#F7B32B]/90 text-[#333333] transition"
                   >
                     <PlusCircle className="h-4 w-4 mr-2" />
                     Créer maintenant
@@ -228,6 +248,7 @@ const ContentManager: React.FC = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Dialogs */}
       <CreateDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
@@ -241,6 +262,7 @@ const ContentManager: React.FC = () => {
         setIsCreateDialogOpen={setIsCreateDialogOpen}
         toast={toast}
       />
+
       <EditDialog
         isOpen={isEditDialogOpen}
         onClose={() => {
@@ -256,6 +278,7 @@ const ContentManager: React.FC = () => {
         resources={resources}
         toast={toast}
       />
+
       <Dialog open={!!articleToDelete} onOpenChange={() => setArticleToDelete(null)}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>

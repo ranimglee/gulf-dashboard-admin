@@ -12,6 +12,7 @@ interface CreateItemData {
   fileType: string;
   subTitle: string;
   country: string;
+  language: string; // ✅ added missing field
 }
 
 export const handleCreateItem = async (
@@ -56,6 +57,7 @@ export const handleCreateItem = async (
       formData.append('description', data.description);
       formData.append('category', data.category);
       formData.append('fileType', data.fileType);
+      formData.append('language', data.language); // ✅ include language
 
       const response = await axios.post('https://blog-m2jm.onrender.com/api/ressources/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -67,10 +69,10 @@ export const handleCreateItem = async (
         title: created.titre,
         description: created.description,
         date: created.createdAt?.split('T')[0] || date,
-        status: 'published',
         type: 'resource',
         category: created.category,
         fileType: created.fileType,
+        language: created.language || data.language, // ✅ added
       };
 
       setResources([newItem, ...resources]);
@@ -102,6 +104,7 @@ export const handleCreateItem = async (
         content: data.contenu,
         country: data.country,
         imageUrl,
+        language: data.language, // ✅ send to API
       });
 
       const created = response.data;
@@ -111,11 +114,11 @@ export const handleCreateItem = async (
           title: created.title,
           description: created.subTitle,
           date,
-          status: 'published',
           type: 'project',
           subTitle: created.subTitle,
           country: created.country,
           imageUrl: created.imageUrl || imageUrl,
+          language: created.language || data.language, // ✅ added
         },
         ...projects,
       ]);
@@ -149,6 +152,7 @@ export const handleCreateItem = async (
         type: data.type,
         contenu: data.contenu,
         imageUrl,
+        language: data.language, // ✅ send to API
       });
 
       const created = response.data;
@@ -158,9 +162,9 @@ export const handleCreateItem = async (
           title: created.title,
           description: created.description,
           date,
-          status: created.status || 'draft',
           type: 'article',
           imageUrl: created.imageUrl || imageUrl,
+          language: created.language || data.language, // ✅ added
         },
         ...articles,
       ]);

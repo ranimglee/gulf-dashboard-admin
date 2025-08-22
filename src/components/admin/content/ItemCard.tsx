@@ -101,6 +101,13 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, setArticleToDelete, setEditin
             <Calendar className="w-3 h-3 mr-1" />
             {item.date}
           </span>
+           {/* Language for all types if available */}
+    {item.language && (
+      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+        {item.language}
+      </span>
+    )}
+
           {item.type === 'resource' && (
             <>
               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
@@ -121,11 +128,7 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, setArticleToDelete, setEditin
               </span>
             </>
           )}
-          {item.type === 'article' && (
-            <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-              {typeLabels[item.status.toUpperCase()] || item.status}
-            </span>
-          )}
+         
         </div>
       </CardContent>
     </Card>
