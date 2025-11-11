@@ -1,6 +1,8 @@
 import axios from 'axios';
 
+//const API_BASE_URL = 'https://blog-m2jm.onrender.com'; 
 const API_BASE_URL = 'https://blog-m2jm.onrender.com'; 
+
 
 export const getTrafficStats = () => axios.get(`${API_BASE_URL}/api/analytics/traffic`);
 export const getTotalVisitors = () => axios.get(`${API_BASE_URL}/api/analytics/total-visitors-stats`);
