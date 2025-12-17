@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
+import { API_BASE_URL } from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import 'react-toastify/dist/ReactToastify.css';
@@ -16,7 +17,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      await axios.post('https://blog-m2jm.onrender.com/public/request-reset', { email });
+      await axios.post(`${API_BASE_URL}/public/request-reset`, { email });
       toast.success('Le code a été envoyé à votre adresse e-mail.');
       navigate(`/verify-code?email=${email}`);
     } catch (error: any) {

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Key, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/lib/api";
 
 const SecuritySettings = () => {
   const { toast } = useToast();
@@ -51,7 +52,7 @@ const SecuritySettings = () => {
 
     try {
       const response = await axios.put(
-        "https://blog-m2jm.onrender.com/user/change-password",
+        `${API_BASE_URL}/user/change-password`,
         {
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,

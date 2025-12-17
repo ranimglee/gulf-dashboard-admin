@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
+import { API_BASE_URL } from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -16,7 +17,7 @@ const VerifyCode = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post('https://blog-m2jm.onrender.com/public/verify-reset-code', { email, code });
+      const res = await axios.post(`${API_BASE_URL}/public/verify-reset-code`, { email, code });
       if (res.data.valid) {
         toast.success('Code vérifié avec succès.');
         navigate(`/reset-password?email=${email}&code=${code}`);

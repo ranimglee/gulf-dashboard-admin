@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { MessageSquare, Search, Mail, Clock, User, Reply, Archive, Trash2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 
 interface Message {
   id: string;
@@ -44,7 +45,7 @@ const MessagesManager = () => {
     const fetchPendingComments = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('https://blog-m2jm.onrender.com/api/comments/pending');
+        const response = await axios.get(`${API_BASE_URL}/api/comments/pending`);
         setPendingComments(response.data.map((comment: any) => ({
           id: comment.id,
           content: comment.content,
@@ -68,7 +69,7 @@ const MessagesManager = () => {
   // Approve Comment
   const handleApproveComment = async (commentId: string) => {
     try {
-      await axios.put(`https://blog-m2jm.onrender.com/api/comments/approve/${commentId}`);
+      await axios.put(`${API_BASE_URL}/api/comments/approve/${commentId}`);
       setPendingComments(pendingComments.filter(comment => comment.id !== commentId));
       if (selectedComment?.id === commentId) {
         setSelectedComment(null);

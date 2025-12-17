@@ -8,6 +8,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import axios from 'axios';
 import { ContentItem, ToastFunction } from '../../../types/types';
+import { API_BASE_URL } from '@/lib/api';
 
 const modules = {
   toolbar: [
@@ -140,11 +141,11 @@ useEffect(() => {
 
         let uploadEndpoint = '';
         if (item.type === 'article') {
-          uploadEndpoint = 'https://blog-m2jm.onrender.com/api/articles/upload-image';
+          uploadEndpoint = `${API_BASE_URL}/api/articles/upload-image`;
         } else if (item.type === 'project') {
-          uploadEndpoint = 'https://blog-m2jm.onrender.com/api/initiatives/upload-image-initiative';
+          uploadEndpoint = `${API_BASE_URL}/api/initiatives/upload-image-initiative`;
         } else {
-          uploadEndpoint = 'https://blog-m2jm.onrender.com/api/ressources/upload';
+          uploadEndpoint = `${API_BASE_URL}/api/ressources/upload`;
         }
 
         const uploadResponse = await axios.post(uploadEndpoint, imageData, {
@@ -157,7 +158,7 @@ useEffect(() => {
       let updateData: any = {};
 
       if (item.type === 'article') {
-        updateEndpoint = `https://blog-m2jm.onrender.com/api/articles/${item.id}`;
+        updateEndpoint = `${API_BASE_URL}/api/articles/${item.id}`;
         updateData = {
           title: formData.title,
           description: formData.description,
@@ -168,7 +169,7 @@ useEffect(() => {
           imageUrl: imageUrl || item.imageUrl,
         };
       } else if (item.type === 'project') {
-        updateEndpoint = `https://blog-m2jm.onrender.com/api/initiatives/update-initiative/${item.id}`;
+        updateEndpoint = `${API_BASE_URL}/api/initiatives/update-initiative/${item.id}`;
         updateData = {
           title: formData.title,
           subTitle: formData.subTitle,
@@ -177,7 +178,7 @@ useEffect(() => {
           ...(imageUrl && { imageUrl }),
         };
       } else if (item.type === 'resource') {
-        updateEndpoint = `https://blog-m2jm.onrender.com/api/ressources/${item.id}`;
+        updateEndpoint = `${API_BASE_URL}/api/ressources/${item.id}`;
         updateData = {
           titre: formData.title,
           description: formData.description,

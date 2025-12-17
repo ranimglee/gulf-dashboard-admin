@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
+import { API_BASE_URL } from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -17,7 +18,7 @@ const ResetPassword = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post('https://blog-m2jm.onrender.com/public/reset-password', { email, code, newPassword });
+      await axios.post(`${API_BASE_URL}/public/reset-password`, { email, code, newPassword });
       toast.success('Mot de passe réinitialisé avec succès.');
       navigate('/login');
     } catch (error: any) {
