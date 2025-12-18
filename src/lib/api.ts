@@ -16,10 +16,10 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-export const getTrafficStats = () => api.get('/api/analytics/traffic');
-export const getTotalVisitors = () => api.get('/api/analytics/total-visitors-stats');
-export const getTotalArticles = () => api.get('/api/analytics/count-articles');
-export const getCommentStats = () => api.get('/api/analytics/stats');
-export const getUserNonAdmin = () => api.get('/api/analytics/users/non-admin');
+export const getTrafficStats = () => api.get('/analytics/traffic');
+export const getTotalVisitors = () => api.get('/analytics/total-visitors-stats');
+export const getTotalArticles = () => api.get('/analytics/count-articles');
+export const getCommentStats = () => api.get('/analytics/stats');
+export const getUserNonAdmin = () => api.get('/analytics/users/non-admin');
 export const banUser = (id: string) => api.put(`/user/ban-user/${id}`);
 

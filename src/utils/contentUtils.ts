@@ -60,7 +60,7 @@ export const handleCreateItem = async (
       formData.append('fileType', data.fileType);
       formData.append('language', data.language); // ✅ include language
 
-      const response = await axios.post(`${API_BASE_URL}/api/ressources/upload`, formData, {
+      const response = await axios.post(`${API_BASE_URL}/ressources/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -93,13 +93,13 @@ export const handleCreateItem = async (
       if (data.file) {
         const imageData = new FormData();
         imageData.append('file', data.file);
-        const uploadResponse = await axios.post(`${API_BASE_URL}/api/initiatives/upload-image-initiative`, imageData, {
+        const uploadResponse = await axios.post(`${API_BASE_URL}/initiatives/upload-image-initiative`, imageData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         imageUrl = uploadResponse.data.imageUrl;
       }
 
-      const response = await axios.post(`${API_BASE_URL}/api/initiatives/create-new-initiative`, {
+      const response = await axios.post(`${API_BASE_URL}/initiatives/create-new-initiative`, {
         title: data.title,
         subTitle: data.subTitle,
         content: data.contenu,
@@ -140,13 +140,13 @@ export const handleCreateItem = async (
       if (data.file) {
         const imageData = new FormData();
         imageData.append('file', data.file);
-        const documentResponse = await axios.post(`${API_BASE_URL}/api/articles/upload-image`, imageData, {
+        const documentResponse = await axios.post(`${API_BASE_URL}/articles/upload-image`, imageData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         imageUrl = documentResponse.data.imageUrl;
       }
 
-      const response = await axios.post(`${API_BASE_URL}/api/articles`, {
+      const response = await axios.post(`${API_BASE_URL}/articles`, {
         title: data.title,
         description: data.description,
         auteur: data.auteur,
@@ -196,13 +196,13 @@ export const handleDeleteItem = async (
 ) => {
   try {
     if (item.type === 'article') {
-      await axios.delete(`${API_BASE_URL}/api/articles/${item.id}`);
+      await axios.delete(`${API_BASE_URL}/articles/${item.id}`);
       setArticles(articles.filter((a) => a.id !== item.id));
     } else if (item.type === 'resource') {
-      await axios.delete(`${API_BASE_URL}/api/ressources/${item.id}`);
+      await axios.delete(`${API_BASE_URL}/ressources/${item.id}`);
       setResources(resources.filter((r) => r.id !== item.id));
     } else if (item.type === 'project') {
-      await axios.delete(`${API_BASE_URL}/api/initiatives/delete-initiative/${item.id}`);
+      await axios.delete(`${API_BASE_URL}/initiatives/delete-initiative/${item.id}`);
       setProjects(projects.filter((p) => p.id !== item.id));
     }
     toast({ title: 'Supprimé', description: `"${item.title}" a été supprimé.` });

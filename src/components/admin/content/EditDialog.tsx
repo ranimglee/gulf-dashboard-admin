@@ -141,11 +141,11 @@ useEffect(() => {
 
         let uploadEndpoint = '';
         if (item.type === 'article') {
-          uploadEndpoint = `${API_BASE_URL}/api/articles/upload-image`;
+          uploadEndpoint = `${API_BASE_URL}/articles/upload-image`;
         } else if (item.type === 'project') {
-          uploadEndpoint = `${API_BASE_URL}/api/initiatives/upload-image-initiative`;
+          uploadEndpoint = `${API_BASE_URL}/initiatives/upload-image-initiative`;
         } else {
-          uploadEndpoint = `${API_BASE_URL}/api/ressources/upload`;
+          uploadEndpoint = `${API_BASE_URL}/ressources/upload`;
         }
 
         const uploadResponse = await axios.post(uploadEndpoint, imageData, {
@@ -158,7 +158,7 @@ useEffect(() => {
       let updateData: any = {};
 
       if (item.type === 'article') {
-        updateEndpoint = `${API_BASE_URL}/api/articles/${item.id}`;
+        updateEndpoint = `${API_BASE_URL}/articles/${item.id}`;
         updateData = {
           title: formData.title,
           description: formData.description,
@@ -169,7 +169,7 @@ useEffect(() => {
           imageUrl: imageUrl || item.imageUrl,
         };
       } else if (item.type === 'project') {
-        updateEndpoint = `${API_BASE_URL}/api/initiatives/update-initiative/${item.id}`;
+        updateEndpoint = `${API_BASE_URL}/initiatives/update-initiative/${item.id}`;
         updateData = {
           title: formData.title,
           subTitle: formData.subTitle,
@@ -178,7 +178,7 @@ useEffect(() => {
           ...(imageUrl && { imageUrl }),
         };
       } else if (item.type === 'resource') {
-        updateEndpoint = `${API_BASE_URL}/api/ressources/${item.id}`;
+        updateEndpoint = `${API_BASE_URL}/ressources/${item.id}`;
         updateData = {
           titre: formData.title,
           description: formData.description,

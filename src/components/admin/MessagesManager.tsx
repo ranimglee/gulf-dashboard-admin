@@ -45,7 +45,7 @@ const MessagesManager = () => {
     const fetchPendingComments = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/comments/pending`);
+        const response = await axios.get(`${API_BASE_URL}/comments/pending`);
         setPendingComments(response.data.map((comment: any) => ({
           id: comment.id,
           content: comment.content,
@@ -69,7 +69,7 @@ const MessagesManager = () => {
   // Approve Comment
   const handleApproveComment = async (commentId: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/api/comments/approve/${commentId}`);
+      await axios.put(`${API_BASE_URL}/comments/approve/${commentId}`);
       setPendingComments(pendingComments.filter(comment => comment.id !== commentId));
       if (selectedComment?.id === commentId) {
         setSelectedComment(null);

@@ -42,7 +42,7 @@ const ContentManager: React.FC = () => {
     const fetchArticles = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/articles`);
+        const response = await axios.get(`${API_BASE_URL}/articles`);
         const fetchedArticles = response.data.map((item: any) => ({
           id: item.id?.toString() || Date.now().toString(),
           title: item.title,
@@ -72,7 +72,7 @@ const ContentManager: React.FC = () => {
     const fetchRes = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/ressources`);
+        const response = await axios.get(`${API_BASE_URL}/ressources`);
         const fetchedResources = response.data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
           title: res.titre,
@@ -103,7 +103,7 @@ const ContentManager: React.FC = () => {
     const fetchInitiatives = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/initiatives/get-all-initiatives`);
+        const response = await axios.get(`${API_BASE_URL}/initiatives/get-all-initiatives`);
         const fetchedInitiatives = response.data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
           title: res.title,
