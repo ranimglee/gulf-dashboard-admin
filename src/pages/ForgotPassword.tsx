@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react'; // optional, you can use any icon library
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -29,8 +30,20 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F4E1D2] to-white">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-center text-[#1A535C]">Mot de passe oublié</h2>
+       <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 p-2 text-[#1A535C] hover:text-[#3a7c86]"
+        >
+          <ArrowLeft size={20} /> {/* or just use "←" if no icon library */}
+        </button>
+
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md relative">
+        {/* Go Back Arrow */}
+       
+        <h2 className="text-2xl font-bold mb-4 text-center text-[#1A535C]">
+          Mot de passe oublié
+        </h2>
         <form onSubmit={handleSubmit}>
           <label className="block mb-2 font-medium">Adresse e-mail</label>
           <Input

@@ -12,7 +12,7 @@ import EditDialog from './EditDialog';
 import ItemCard from './ItemCard';
 import { ContentItem } from '../../../types/types';
 import { handleDeleteItem } from '../../../utils/contentUtils';
-import { API_BASE_URL } from '@/lib/api';
+import { api, API_BASE_URL } from '@/lib/api';
 
 const ContentManager: React.FC = () => {
   const { toast } = useToast();
@@ -42,7 +42,7 @@ const ContentManager: React.FC = () => {
     const fetchArticles = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/articles`);
+        const response = await api.get(`/articles`);
         const fetchedArticles = response.data.map((item: any) => ({
           id: item.id?.toString() || Date.now().toString(),
           title: item.title,
@@ -72,7 +72,7 @@ const ContentManager: React.FC = () => {
     const fetchRes = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/ressources`);
+        const response = await api.get(`/ressources`);
         const fetchedResources = response.data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
           title: res.titre,
@@ -103,15 +103,17 @@ const ContentManager: React.FC = () => {
     const fetchInitiatives = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/initiatives/get-all-initiatives`);
+        const response = await api.get(`/initiatives/get-all-initiatives`);
         const fetchedInitiatives = response.data.map((res: any) => ({
           id: res.id?.toString() || Date.now().toString(),
           title: res.title,
-          description: res.subTitle,
+          description: '',
+
           date: res.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
           status: 'published',
           type: 'project',
           subTitle: res.subTitle,
+          content: res.content, 
           country: res.country,
           imageUrl: res.imageUrl || res.image || null,
           language: normalizeLanguage(res.language),
@@ -265,20 +267,22 @@ const ContentManager: React.FC = () => {
       />
 
       <EditDialog
-        isOpen={isEditDialogOpen}
-        onClose={() => {
-          setIsEditDialogOpen(false);
-          setEditingItem(null);
-        }}
-        item={editingItem}
-        setArticles={setArticles}
-        setProjects={setProjects}
-        setResources={setResources}
-        articles={articles}
-        projects={projects}
-        resources={resources}
-        toast={toast}
-      />
+  isOpen={isEditDialogOpen}
+  onClose={() => {
+    setIsEditDialogOpen(false);
+    setEditingItem(null);
+  }}
+  itemId={editingItem?.id || null}
+  type={selectedTab === 'articles' ? 'article' : selectedTab === 'projects' ? 'project' : 'resource'}
+  setArticles={setArticles}
+  setProjects={setProjects}
+  setResources={setResources}
+  articles={articles}
+  projects={projects}
+  resources={resources}
+  toast={toast}
+/>
+
 
       <Dialog open={!!articleToDelete} onOpenChange={() => setArticleToDelete(null)}>
         <DialogContent className="sm:max-w-[400px]">

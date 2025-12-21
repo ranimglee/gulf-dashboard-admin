@@ -6,9 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import axios from 'axios';
 import { ContentItem, ToastFunction } from '../../../types/types';
-import { API_BASE_URL } from '@/lib/api';
+import { api, API_BASE_URL } from '@/lib/api';
 
 const modules = {
   toolbar: [
@@ -30,7 +29,8 @@ const formats = [
 interface EditDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  item: ContentItem | null;
+  itemId: string | null;
+  type: 'article' | 'project' | 'resource';
   setArticles: (articles: ContentItem[]) => void;
   setProjects: (projects: ContentItem[]) => void;
   setResources: (resources: ContentItem[]) => void;
@@ -43,7 +43,8 @@ interface EditDialogProps {
 const EditDialog: React.FC<EditDialogProps> = ({
   isOpen,
   onClose,
-  item,
+  itemId,
+  type,
   setArticles,
   setProjects,
   setResources,
@@ -58,70 +59,66 @@ const EditDialog: React.FC<EditDialogProps> = ({
     auteur: '',
     type: 'BLOG',
     contenu: '',
-    language: 'ENGLISH', // ✅ added
+    language: 'ENGLISH',
     file: null as File | null,
     category: 'FINANCE',
     fileType: 'PDF',
     subTitle: '',
     country: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [itemData, setItemData] = useState<ContentItem | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-useEffect(() => {
-  if (item) {
-    if (item.type === 'article') {
-      setFormData({
-        title: item.title || '',
-        description: item.description || '',
-        auteur: item.author || '',
-        type:  'BLOG', 
-        contenu: item.content || '',      
-        language: item.language || 'ENGLISH',
-        file: null,
-        category: '',
-        fileType: '',
-        subTitle: '',
-        country: '',
-      });
-    } else if (item.type === 'project') {
-      setFormData({
-        title: item.title || '',
-        description: '',
-        auteur: '',
-        type: 'BLOG',
-        contenu: item.content || '',   // ✅ use correct backend field
-        language: 'ENGLISH',
-        file: null,
-        category: '',
-        fileType: '',
-        subTitle: item.subTitle || '',
-        country: item.country || '',
-      });
-    } else if (item.type === 'resource') {
-      setFormData({
-        title: item.title || '',
-        description: item.description || '',
-        auteur: '',
-        type: 'BLOG',
-        contenu: '',
-        language: 'ENGLISH',
-        file: null,
-        category: item.category || 'FINANCE',
-        fileType: item.fileType || 'PDF',
-        subTitle: '',
-        country: '',
-      });
-    }
+  // 🔹 Fetch item by id from backend when dialog opens
+  useEffect(() => {
+    const fetchItemById = async () => {
+      if (!itemId) return;
+      setIsFetching(true);
+      try {
+        let endpoint = '';
+        if (type === 'article') endpoint = `/articles/${itemId}`;
+        else if (type === 'project') endpoint = `/initiatives/get-initiative-by/${itemId}`;
+        else if (type === 'resource') endpoint = `/ressources/${itemId}`;
 
-    setPreviewImage(item.imageUrl || item.image || null);
-  }
-}, [item]);
+        const response = await api.get(endpoint);
+        const data = response.data;
 
+        setItemData({ ...data, type, imageUrl: data.imageUrl || data.image || null });
+
+        setFormData({
+          title: data.title || data.titre || '',
+          description: data.description || '',
+          auteur: data.author ||data.auteur || '',
+          type: 'BLOG',
+          contenu: data.content || data.contenu || '',
+          language: data.language || 'ENGLISH',
+          file: null,
+          category: data.category || 'FINANCE',
+          fileType: data.fileType || 'PDF',
+          subTitle: data.subTitle || '',
+          country: data.country || '',
+        });
+
+        setPreviewImage(data.imageUrl || data.image || null);
+      } catch (err: any) {
+        toast({
+          title: 'Erreur',
+          description: err.response?.data?.message || 'Impossible de récupérer les données.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    if (isOpen) fetchItemById();
+  }, [itemId, type, isOpen, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!item) return;
+    if (!itemData) return;
 
     setIsSubmitting(true);
 
@@ -140,15 +137,11 @@ useEffect(() => {
         imageData.append('file', formData.file);
 
         let uploadEndpoint = '';
-        if (item.type === 'article') {
-          uploadEndpoint = `${API_BASE_URL}/articles/upload-image`;
-        } else if (item.type === 'project') {
-          uploadEndpoint = `${API_BASE_URL}/initiatives/upload-image-initiative`;
-        } else {
-          uploadEndpoint = `${API_BASE_URL}/ressources/upload`;
-        }
+        if (type === 'article') uploadEndpoint = `${API_BASE_URL}/articles/upload-image`;
+        else if (type === 'project') uploadEndpoint = `${API_BASE_URL}/initiatives/upload-image-initiative`;
+        else uploadEndpoint = `${API_BASE_URL}/ressources/upload`;
 
-        const uploadResponse = await axios.post(uploadEndpoint, imageData, {
+        const uploadResponse = await api.post(uploadEndpoint, imageData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         imageUrl = uploadResponse.data.imageUrl || uploadResponse.data.image;
@@ -157,19 +150,19 @@ useEffect(() => {
       let updateEndpoint = '';
       let updateData: any = {};
 
-      if (item.type === 'article') {
-        updateEndpoint = `${API_BASE_URL}/articles/${item.id}`;
+      if (type === 'article') {
+        updateEndpoint = `${API_BASE_URL}/articles/${itemData.id}`;
         updateData = {
           title: formData.title,
           description: formData.description,
           auteur: formData.auteur,
           type: formData.type,
           contenu: formData.contenu,
-          language: formData.language, // ✅ include language
-          imageUrl: imageUrl || item.imageUrl,
+          language: formData.language,
+          imageUrl: imageUrl || itemData.imageUrl,
         };
-      } else if (item.type === 'project') {
-        updateEndpoint = `${API_BASE_URL}/initiatives/update-initiative/${item.id}`;
+      } else if (type === 'project') {
+        updateEndpoint = `${API_BASE_URL}/initiatives/update-initiative/${itemData.id}`;
         updateData = {
           title: formData.title,
           subTitle: formData.subTitle,
@@ -177,8 +170,8 @@ useEffect(() => {
           country: formData.country,
           ...(imageUrl && { imageUrl }),
         };
-      } else if (item.type === 'resource') {
-        updateEndpoint = `${API_BASE_URL}/ressources/${item.id}`;
+      } else if (type === 'resource') {
+        updateEndpoint = `${API_BASE_URL}/ressources/${itemData.id}`;
         updateData = {
           titre: formData.title,
           description: formData.description,
@@ -188,26 +181,13 @@ useEffect(() => {
         };
       }
 
-      const response = await axios.put(updateEndpoint, updateData);
+      await api.put(updateEndpoint, updateData);
 
-      const updatedItem = {
-        ...item,
-        title: formData.title,
-        description: formData.description,
-        subTitle: formData.subTitle,
-        country: formData.country,
-        language: formData.language, // ✅ save in state
-        ...(imageUrl && { imageUrl }),
-        ...(imageUrl && { image: imageUrl }),
-      };
+      const updatedItem = { ...itemData, ...updateData };
 
-      if (item.type === 'article') {
-        setArticles(articles.map(a => a.id === item.id ? updatedItem : a));
-      } else if (item.type === 'project') {
-        setProjects(projects.map(p => p.id === item.id ? updatedItem : p));
-      } else if (item.type === 'resource') {
-        setResources(resources.map(r => r.id === item.id ? updatedItem : r));
-      }
+      if (type === 'article') setArticles(articles.map(a => a.id === itemData.id ? updatedItem : a));
+      if (type === 'project') setProjects(projects.map(p => p.id === itemData.id ? updatedItem : p));
+      if (type === 'resource') setResources(resources.map(r => r.id === itemData.id ? updatedItem : r));
 
       toast({ title: 'Mis à jour', description: `"${formData.title}" a été mis à jour.` });
       onClose();
@@ -222,18 +202,20 @@ useEffect(() => {
     }
   };
 
-  if (!item) return null;
+  if (isFetching) return <div>Chargement…</div>;
+  if (!itemData) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-[#1A535C]">
-            Modifier {item.type === 'article' ? 'l\'article' : item.type === 'project' ? 'l\'initiative' : 'la ressource'}
+            Modifier {type === 'article' ? 'l\'article' : type === 'project' ? 'l\'initiative' : 'la ressource'}
           </DialogTitle>
           <DialogDescription>Modifiez les informations ci-dessous.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Formulaire identique à ton code existant, utilisant formData */}
           <div>
             <Label>Titre</Label>
             <Input
@@ -243,7 +225,7 @@ useEffect(() => {
               disabled={isSubmitting}
             />
           </div>
-          {item.type !== 'project' && (
+          {type !== 'project' && (
             <div>
               <Label>Description</Label>
               <Input
@@ -254,7 +236,7 @@ useEffect(() => {
               />
             </div>
           )}
-          {item.type === 'article' && (
+          {type === 'article' && (
             <>
               <div>
                 <Label>Auteur</Label>
@@ -297,7 +279,7 @@ useEffect(() => {
               </div>
             </>
           )}
-          {item.type === 'project' && (
+          {type === 'project' && (
             <>
               <div>
                 <Label>Sous-titre</Label>
@@ -319,7 +301,7 @@ useEffect(() => {
               </div>
             </>
           )}
-          {item.type === 'resource' && (
+          {type === 'resource' && (
             <>
               <div>
                 <Label>Catégorie</Label>
@@ -388,7 +370,7 @@ useEffect(() => {
               )}
               <Input
                 type="file"
-                accept={item.type === 'resource' ? '*' : 'image/*'}
+                accept={type === 'resource' ? '*' : 'image/*'}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -402,16 +384,14 @@ useEffect(() => {
                       return;
                     }
                     setFormData({ ...formData, file });
-                    if (item.type !== 'resource') {
+                    if (type !== 'resource') {
                       const reader = new FileReader();
-                      reader.onloadend = () => {
-                        setPreviewImage(reader.result as string);
-                      };
+                      reader.onloadend = () => setPreviewImage(reader.result as string);
                       reader.readAsDataURL(file);
                     }
                   }
                 }}
-                required={item.type === 'resource'}
+                required={type === 'resource'}
                 disabled={isSubmitting}
               />
             </div>
@@ -434,9 +414,7 @@ useEffect(() => {
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   Mise à jour...
                 </>
-              ) : (
-                'Mettre à jour'
-              )}
+              ) : 'Mettre à jour'}
             </Button>
           </div>
         </form>
