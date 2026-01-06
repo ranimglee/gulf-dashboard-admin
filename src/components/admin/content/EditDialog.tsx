@@ -137,7 +137,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
         imageData.append('file', formData.file);
 
         let uploadEndpoint = '';
-        if (type === 'article') uploadEndpoint = `${API_BASE_URL}/articles/upload-image`;
+        if (type === 'article') uploadEndpoint = `$salaah2002/afaq:dashboard-v1.0.1{API_BASE_URL}/articles/upload-image`;
         else if (type === 'project') uploadEndpoint = `${API_BASE_URL}/initiatives/upload-image-initiative`;
         else uploadEndpoint = `${API_BASE_URL}/ressources/upload`;
 
