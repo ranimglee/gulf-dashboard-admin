@@ -6,7 +6,9 @@ export interface ContentItem {
   title: string;
   description: string;
   content?:string;
-  date: string;
+createdAt: string;
+updatedAt?: string;
+
   author?:string;
   type: 'article' | 'project' | 'resource';
   category?: string;

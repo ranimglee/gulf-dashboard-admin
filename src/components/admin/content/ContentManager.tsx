@@ -47,13 +47,18 @@ const ContentManager: React.FC = () => {
           id: item.id?.toString() || Date.now().toString(),
           title: item.title,
           description: item.description,
-          date: item.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
-          status: item.status || 'draft',
+  createdAt: item.createdAt,
+  updatedAt: item.updatedAt,   
+         status: item.status || 'draft',
           type: 'article',
           imageUrl: item.imageUrl || item.image || null,
           language: normalizeLanguage(item.language),
         }));
-        setArticles(fetchedArticles.sort((a, b) => b.date.localeCompare(a.date)));
+        setArticles(fetchedArticles.sort(
+  (a, b) =>
+    new Date(b.updatedAt ?? b.createdAt).getTime() -
+    new Date(a.updatedAt ?? a.createdAt).getTime()
+));
       } catch (error: any) {
         toast({
           title: 'Erreur de chargement',
@@ -77,14 +82,20 @@ const ContentManager: React.FC = () => {
           id: res.id?.toString() || Date.now().toString(),
           title: res.titre,
           description: res.description,
-          date: res.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+          //date: res.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+          createdAt: res.createdAt,
+updatedAt: res.updatedAt,
           status: 'published',
           type: 'resource',
           category: res.category,
           fileType: res.fileType,
           language: normalizeLanguage(res.language),
         }));
-        setResources(fetchedResources.sort((a, b) => b.date.localeCompare(a.date)));
+        setResources(fetchedResources.sort(
+  (a, b) =>
+    new Date(b.updatedAt ?? b.createdAt).getTime() -
+    new Date(a.updatedAt ?? a.createdAt).getTime()
+));
       } catch (error: any) {
         toast({
           title: 'Erreur de chargement',
@@ -108,8 +119,9 @@ const ContentManager: React.FC = () => {
           id: res.id?.toString() || Date.now().toString(),
           title: res.title,
           description: '',
-
-          date: res.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+  createdAt: res.createdAt,
+  updatedAt: res.updatedAt,
+         // date: res.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
           status: 'published',
           type: 'project',
           subTitle: res.subTitle,
@@ -118,7 +130,11 @@ const ContentManager: React.FC = () => {
           imageUrl: res.imageUrl || res.image || null,
           language: normalizeLanguage(res.language),
         }));
-        setProjects(fetchedInitiatives.sort((a, b) => b.date.localeCompare(a.date)));
+        setProjects(fetchedInitiatives.sort(
+  (a, b) =>
+    new Date(b.updatedAt ?? b.createdAt).getTime() -
+    new Date(a.updatedAt ?? a.createdAt).getTime()
+));
       } catch (error: any) {
         toast({
           title: 'Erreur de chargement',

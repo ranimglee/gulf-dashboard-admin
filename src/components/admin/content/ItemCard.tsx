@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, FileText, Image, Upload, Trash2, Edit } from 'lucide-react';
-import { ContentItem, typeLabels } from '../../../types/types';
+import { ContentItem } from '../../../types/types';
 
 interface ItemCardProps {
   item: ContentItem;
@@ -12,6 +12,11 @@ interface ItemCardProps {
 }
 
 const ItemCard: React.FC<ItemCardProps> = ({ item, setArticleToDelete, setEditingItem, setIsEditDialogOpen }) => {
+const dateValue =
+  item.updatedAt ??
+  item.createdAt ??
+  new Date().toISOString();
+
   return (
     <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <div className="relative">
@@ -97,10 +102,21 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, setArticleToDelete, setEditin
 
       <CardContent className="p-4 pt-0">
         <div className="flex flex-wrap gap-2 text-sm">
-          <span className="flex items-center text-gray-600">
-            <Calendar className="w-3 h-3 mr-1" />
-            {item.date}
-          </span>
+        <span className="flex items-center text-gray-600">
+  <Calendar className="w-3 h-3 mr-1" />
+ 
+  {dateValue
+    ? new Date(dateValue).toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '—'}
+</span>
+
+
            {/* Language for all types if available */}
     {item.language && (
       <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">

@@ -64,48 +64,55 @@ const EditDialog: React.FC<EditDialogProps> = ({
     category: 'FINANCE',
     fileType: 'PDF',
     subTitle: '',
-    country: '',
+    country: ''
   });
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [itemData, setItemData] = useState<ContentItem | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔹 Fetch item by id from backend when dialog opens
+ // 🔹 Fetch item
   useEffect(() => {
-    const fetchItemById = async () => {
-      if (!itemId) return;
+    if (!isOpen || !itemId) return;
+
+    const fetchItem = async () => {
       setIsFetching(true);
       try {
-        let endpoint = '';
-        if (type === 'article') endpoint = `/articles/${itemId}`;
-        else if (type === 'project') endpoint = `/initiatives/get-initiative-by/${itemId}`;
-        else if (type === 'resource') endpoint = `/ressources/${itemId}`;
+        const endpoint =
+          type === 'article'
+            ? `/articles/${itemId}`
+            : type === 'project'
+            ? `/initiatives/get-initiative-by/${itemId}`
+            : `/ressources/${itemId}`;
 
-        const response = await api.get(endpoint);
-        const data = response.data;
+        const { data } = await api.get(endpoint);
 
-        setItemData({ ...data, type, imageUrl: data.imageUrl || data.image || null });
+        setItemData({ ...data, type, imageUrl: data.imageUrl || data.image });
 
-        setFormData({
-          title: data.title || data.titre || '',
-          description: data.description || '',
-          auteur: data.author ||data.auteur || '',
-          type: 'BLOG',
-          contenu: data.content || data.contenu || '',
-          language: data.language || 'ENGLISH',
-          file: null,
-          category: data.category || 'FINANCE',
-          fileType: data.fileType || 'PDF',
-          subTitle: data.subTitle || '',
-          country: data.country || '',
-        });
+    // When fetching item
+setFormData((prev) => ({
+  ...prev,
+  title: data.title || data.titre || '',
+  description: data.description || '',
+  auteur: data.author || data.auteur || '',
+  type: 'BLOG',
+  contenu: data.content || data.contenu || '',
+  language: data.language || prev.language || 'ENGLISH', // keep default
+  file: null,
+  category: data.category || 'FINANCE',
+  fileType: data.fileType || 'PDF',
+  subTitle: data.subTitle || '',
+  country: data.country || '',
+}));
+
 
         setPreviewImage(data.imageUrl || data.image || null);
       } catch (err: any) {
         toast({
           title: 'Erreur',
-          description: err.response?.data?.message || 'Impossible de récupérer les données.',
+          description:
+            err.response?.data?.message ||
+            'Impossible de récupérer les données.',
           variant: 'destructive',
         });
       } finally {
@@ -113,9 +120,10 @@ const EditDialog: React.FC<EditDialogProps> = ({
       }
     };
 
-    if (isOpen) fetchItemById();
-  }, [itemId, type, isOpen, toast]);
+    fetchItem();
+  }, [isOpen, itemId, type, toast]);
 
+  // 🔹 Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itemData) return;
@@ -123,35 +131,32 @@ const EditDialog: React.FC<EditDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      let imageUrl = '';
+      let imageUrl = itemData.imageUrl;
+
+      // Upload image if needed
       if (formData.file) {
-        if (formData.file.size > 50 * 1024 * 1024) {
-          toast({
-            title: 'Fichier trop volumineux',
-            description: 'La taille maximale autorisée est de 50 Mo.',
-            variant: 'destructive',
-          });
-          return;
-        }
         const imageData = new FormData();
         imageData.append('file', formData.file);
 
-        let uploadEndpoint = '';
-        if (type === 'article') uploadEndpoint = `${API_BASE_URL}/articles/upload-image`;
-        else if (type === 'project') uploadEndpoint = `${API_BASE_URL}/initiatives/upload-image-initiative`;
-        else uploadEndpoint = `${API_BASE_URL}/ressources/upload`;
+        const uploadEndpoint =
+          type === 'article'
+            ? '/articles/upload-image'
+            : type === 'project'
+            ? '/initiatives/upload-image-initiative'
+            : '/ressources/upload';
 
-        const uploadResponse = await api.post(uploadEndpoint, imageData, {
+        const uploadRes = await api.post(uploadEndpoint, imageData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        imageUrl = uploadResponse.data.imageUrl || uploadResponse.data.image;
+
+        imageUrl = uploadRes.data.imageUrl || uploadRes.data.image;
       }
 
       let updateEndpoint = '';
       let updateData: any = {};
 
       if (type === 'article') {
-        updateEndpoint = `${API_BASE_URL}/articles/${itemData.id}`;
+        updateEndpoint = `/articles/${itemData.id}`;
         updateData = {
           title: formData.title,
           description: formData.description,
@@ -159,25 +164,34 @@ const EditDialog: React.FC<EditDialogProps> = ({
           type: formData.type,
           contenu: formData.contenu,
           language: formData.language,
-          imageUrl: imageUrl || itemData.imageUrl,
+          
+          imageUrl,
         };
-      } else if (type === 'project') {
-        updateEndpoint = `${API_BASE_URL}/initiatives/update-initiative/${itemData.id}`;
+      }
+
+      if (type === 'project') {
+        updateEndpoint = `/initiatives/update-initiative/${itemData.id}`;
         updateData = {
           title: formData.title,
           subTitle: formData.subTitle,
           content: formData.contenu,
           country: formData.country,
-          ...(imageUrl && { imageUrl }),
+         language: formData.language,
+
+          imageUrl,
         };
-      } else if (type === 'resource') {
-        updateEndpoint = `${API_BASE_URL}/ressources/${itemData.id}`;
+      }
+
+      if (type === 'resource') {
+        updateEndpoint = `/ressources/${itemData.id}`;
         updateData = {
           titre: formData.title,
           description: formData.description,
           category: formData.category,
           fileType: formData.fileType,
-          ...(imageUrl && { imageUrl }),
+         language: formData.language,
+
+          imageUrl,
         };
       }
 
@@ -263,22 +277,10 @@ const EditDialog: React.FC<EditDialogProps> = ({
                   <option value="REVIEW">Review</option>
                 </select>
               </div>
-              <div>
-                <Label>Langue</Label>
-                <select
-                  value={formData.language}
-                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                  className="border p-2 rounded w-full"
-                  required
-                  disabled={isSubmitting}
-                >
-                  <option value="ENGLISH">Anglais</option>
-                  <option value="FRENCH">Français</option>
-                  <option value="ARABIC">Arabe</option>
-                </select>
-              </div>
+          
             </>
           )}
+          
           {type === 'project' && (
             <>
               <div>
@@ -336,6 +338,20 @@ const EditDialog: React.FC<EditDialogProps> = ({
               </div>
             </>
           )}
+              <div>
+                <Label>Langue</Label>
+                <select
+                  value={formData.language}
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  className="border p-2 rounded w-full"
+                  required
+                  disabled={isSubmitting}
+                >
+                  <option value="ENGLISH">Anglais</option>
+                  <option value="FRENCH">Français</option>
+                  <option value="ARABIC">Arabe</option>
+                </select>
+              </div>
           <div>
             <Label>Contenu</Label>
             <ReactQuill
