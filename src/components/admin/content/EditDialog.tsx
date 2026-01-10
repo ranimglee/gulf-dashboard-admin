@@ -203,7 +203,11 @@ setFormData((prev) => ({
       if (type === 'project') setProjects(projects.map(p => p.id === itemData.id ? updatedItem : p));
       if (type === 'resource') setResources(resources.map(r => r.id === itemData.id ? updatedItem : r));
 
-      toast({ title: 'Mis à jour', description: `"${formData.title}" a été mis à jour.` });
+      toast({
+        title: 'Mis à jour',
+        description: `${formData.title} a été mis à jour.`,
+      });
+
       onClose();
     } catch (err: any) {
       toast({
@@ -216,7 +220,9 @@ setFormData((prev) => ({
     }
   };
 
-  if (isFetching) return <div>Chargement…</div>;
+  if (isFetching) return <div>
+    Chargement…
+    </div>;
   if (!itemData) return null;
 
   return (
@@ -224,12 +230,12 @@ setFormData((prev) => ({
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-[#1A535C]">
-            Modifier {type === 'article' ? 'l\'article' : type === 'project' ? 'l\'initiative' : 'la ressource'}
+            Modifier {type === 'article' ? "l'article" : type === 'project' ? "l'initiative" : 'la ressource'}
           </DialogTitle>
           <DialogDescription>Modifiez les informations ci-dessous.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Formulaire identique à ton code existant, utilisant formData */}
+          {/* Formulaire utilisant formData */}
           <div>
             <Label>Titre</Label>
             <Input
@@ -386,7 +392,7 @@ setFormData((prev) => ({
               )}
               <Input
                 type="file"
-                accept={type === 'resource' ? '*' : 'image/*'}
+                accept={type === 'resource' ? '' : 'image/'}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -440,3 +446,4 @@ setFormData((prev) => ({
 };
 
 export default EditDialog;
+
