@@ -71,26 +71,28 @@ const EditDialog: React.FC<EditDialogProps> = ({
   const [isFetching, setIsFetching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔹 Fetch item by id from backend when dialog opens
+  // 🔹 Fetch item
   useEffect(() => {
-    const fetchItemById = async () => {
-      if (!itemId) return;
+    if (!isOpen || !itemId) return;
+
+    const fetchItem = async () => {
       setIsFetching(true);
       try {
-        let endpoint = '';
-        if (type === 'article') endpoint = `/articles/${itemId}`;
-        else if (type === 'project') endpoint = `/initiatives/get-initiative-by/${itemId}`;
-        else if (type === 'resource') endpoint = `/ressources/${itemId}`;
+        const endpoint =
+          type === 'article'
+            ? `/articles/${itemId}`
+            : type === 'project'
+            ? `/initiatives/get-initiative-by/${itemId}`
+            : `/ressources/${itemId}`;
 
-        const response = await api.get(endpoint);
-        const data = response.data;
+        const { data } = await api.get(endpoint);
 
-        setItemData({ ...data, type, imageUrl: data.imageUrl || data.image || null });
+        setItemData({ ...data, type, imageUrl: data.imageUrl || data.image });
 
         setFormData({
           title: data.title || data.titre || '',
           description: data.description || '',
-          auteur: data.author ||data.auteur || '',
+          auteur: data.author || data.auteur || '',
           type: 'BLOG',
           contenu: data.content || data.contenu || '',
           language: data.language || 'ENGLISH',
@@ -105,7 +107,9 @@ const EditDialog: React.FC<EditDialogProps> = ({
       } catch (err: any) {
         toast({
           title: 'Erreur',
-          description: err.response?.data?.message || 'Impossible de récupérer les données.',
+          description:
+            err.response?.data?.message ||
+            'Impossible de récupérer les données.',
           variant: 'destructive',
         });
       } finally {
@@ -113,9 +117,10 @@ const EditDialog: React.FC<EditDialogProps> = ({
       }
     };
 
-    if (isOpen) fetchItemById();
-  }, [itemId, type, isOpen, toast]);
+    fetchItem();
+  }, [isOpen, itemId, type, toast]);
 
+  // 🔹 Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itemData) return;
@@ -123,35 +128,32 @@ const EditDialog: React.FC<EditDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      let imageUrl = '';
+      let imageUrl = itemData.imageUrl;
+
+      // Upload image if needed
       if (formData.file) {
-        if (formData.file.size > 50 * 1024 * 1024) {
-          toast({
-            title: 'Fichier trop volumineux',
-            description: 'La taille maximale autorisée est de 50 Mo.',
-            variant: 'destructive',
-          });
-          return;
-        }
         const imageData = new FormData();
         imageData.append('file', formData.file);
 
-        let uploadEndpoint = '';
-        if (type === 'article') uploadEndpoint = `$salaah2002/afaq:dashboard-v1.0.1{API_BASE_URL}/articles/upload-image`;
-        else if (type === 'project') uploadEndpoint = `${API_BASE_URL}/initiatives/upload-image-initiative`;
-        else uploadEndpoint = `${API_BASE_URL}/ressources/upload`;
+        const uploadEndpoint =
+          type === 'article'
+            ? '/articles/upload-image'
+            : type === 'project'
+            ? '/initiatives/upload-image-initiative'
+            : '/ressources/upload';
 
-        const uploadResponse = await api.post(uploadEndpoint, imageData, {
+        const uploadRes = await api.post(uploadEndpoint, imageData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        imageUrl = uploadResponse.data.imageUrl || uploadResponse.data.image;
+
+        imageUrl = uploadRes.data.imageUrl || uploadRes.data.image;
       }
 
       let updateEndpoint = '';
       let updateData: any = {};
 
       if (type === 'article') {
-        updateEndpoint = `${API_BASE_URL}/articles/${itemData.id}`;
+        updateEndpoint = `/articles/${itemData.id}`;
         updateData = {
           title: formData.title,
           description: formData.description,
@@ -159,25 +161,29 @@ const EditDialog: React.FC<EditDialogProps> = ({
           type: formData.type,
           contenu: formData.contenu,
           language: formData.language,
-          imageUrl: imageUrl || itemData.imageUrl,
+          imageUrl,
         };
-      } else if (type === 'project') {
-        updateEndpoint = `${API_BASE_URL}/initiatives/update-initiative/${itemData.id}`;
+      }
+
+      if (type === 'project') {
+        updateEndpoint = `/initiatives/update-initiative/${itemData.id}`;
         updateData = {
           title: formData.title,
           subTitle: formData.subTitle,
           content: formData.contenu,
           country: formData.country,
-          ...(imageUrl && { imageUrl }),
+          imageUrl,
         };
-      } else if (type === 'resource') {
-        updateEndpoint = `${API_BASE_URL}/ressources/${itemData.id}`;
+      }
+
+      if (type === 'resource') {
+        updateEndpoint = `/ressources/${itemData.id}`;
         updateData = {
           titre: formData.title,
           description: formData.description,
           category: formData.category,
           fileType: formData.fileType,
-          ...(imageUrl && { imageUrl }),
+          imageUrl,
         };
       }
 
@@ -189,7 +195,11 @@ const EditDialog: React.FC<EditDialogProps> = ({
       if (type === 'project') setProjects(projects.map(p => p.id === itemData.id ? updatedItem : p));
       if (type === 'resource') setResources(resources.map(r => r.id === itemData.id ? updatedItem : r));
 
-      toast({ title: 'Mis à jour', description: `"${formData.title}" a été mis à jour.` });
+      toast({
+        title: 'Mis à jour',
+        description: `${formData.title} a été mis à jour.`,
+      });
+
       onClose();
     } catch (err: any) {
       toast({
@@ -210,12 +220,12 @@ const EditDialog: React.FC<EditDialogProps> = ({
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-[#1A535C]">
-            Modifier {type === 'article' ? 'l\'article' : type === 'project' ? 'l\'initiative' : 'la ressource'}
+            Modifier {type === 'article' ? "l'article" : type === 'project' ? "l'initiative" : 'la ressource'}
           </DialogTitle>
           <DialogDescription>Modifiez les informations ci-dessous.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Formulaire identique à ton code existant, utilisant formData */}
+          {/* Formulaire utilisant formData */}
           <div>
             <Label>Titre</Label>
             <Input
@@ -370,7 +380,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
               )}
               <Input
                 type="file"
-                accept={type === 'resource' ? '*' : 'image/*'}
+                accept={type === 'resource' ? '' : 'image/'}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -424,3 +434,4 @@ const EditDialog: React.FC<EditDialogProps> = ({
 };
 
 export default EditDialog;
+
