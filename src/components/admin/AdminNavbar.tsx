@@ -24,7 +24,7 @@ export function AdminNavbar() {
 localStorage.removeItem('refreshToken');
 localStorage.removeItem('accessToken');
 localStorage.removeItem('role');
-
+localStorage.setItem('adminAuth', 'false'); 
 
       // Show success message
       toast({
