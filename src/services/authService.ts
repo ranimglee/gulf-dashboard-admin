@@ -1,11 +1,12 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 
-const API_URL = 'https://preview--gulf-dashboard-admin.lovable.app/auth/login';
+const LOGIN_URL = `${API_BASE_URL}/auth/login`;
 
 export const loginUser = async (data: { email: string; password: string }) => {
   try {
-    const response = await axios.post(API_URL, data, {
-      withCredentials: true, 
+    const response = await axios.post(LOGIN_URL, data, {
+      withCredentials: true,
     });
     return response.data;
   } catch (error: any) {

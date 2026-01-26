@@ -24,7 +24,7 @@ export function AdminNavbar() {
 localStorage.removeItem('refreshToken');
 localStorage.removeItem('accessToken');
 localStorage.removeItem('role');
-
+localStorage.setItem('adminAuth', 'false'); 
 
       // Show success message
       toast({
@@ -72,10 +72,7 @@ localStorage.removeItem('role');
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-white border-[#E5E7EB]">
-            <DropdownMenuItem className="hover:bg-[#F4E1D2] cursor-pointer">
-              <User className="mr-2 h-4 w-4" />
-              <span>Profil</span>
-            </DropdownMenuItem>
+
             <DropdownMenuItem className="hover:bg-[#F4E1D2] cursor-pointer">
               <Bell className="mr-2 h-4 w-4" />
               <span>Notifications</span>

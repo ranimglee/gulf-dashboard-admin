@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,9 +12,8 @@ import {
 } from '@/components/ui/card';
 import { Shield, Eye, EyeOff } from 'lucide-react';
 import { loginUser } from '@/services/authService';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -33,25 +32,16 @@ const Login = () => {
 
     try {
       const { token, refreshToken, role } = await loginUser({ email, password });
-
-      // Stockage tokens et role
       localStorage.setItem('token', token);
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('role', role);
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('adminAuth');
+      localStorage.setItem('adminAuth', 'true'); 
 
       toast.success('Connexion réussie');
-
-      // Redirection via React Router
       navigate(redirectUrl, { replace: true });
     } catch (err: any) {
-      console.error('Login error:', {
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-      });
-
+      console.error('Login error:', err);
       let message = err.message || 'Échec de la connexion. Veuillez réessayer.';
       if (message === 'Invalid email or password!') {
         message = 'Email ou mot de passe incorrect.';
@@ -74,7 +64,9 @@ const Login = () => {
             <Shield className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-[#1A535C] mb-2">AFAQ Admin</h1>
-          <p className="text-[#333333]">Connectez-vous à votre espace administrateur</p>
+          <p className="text-[#333333]">
+            Connectez-vous à votre espace administrateur
+          </p>
         </div>
 
         <Card className="bg-white shadow-lg border-0">
@@ -115,9 +107,23 @@ const Login = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
+              </div>
+
+              {/* 🔹 Forgot Password Link */}
+              <div className="text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-[#1A535C] hover:underline"
+                >
+                  Mot de passe oublié ?
+                </Link>
               </div>
 
               <Button
@@ -132,7 +138,7 @@ const Login = () => {
         </Card>
 
         <div className="text-center mt-8 text-sm text-[#333333]">
-          <p>© 2024 AFAQ. Tous droits réservés.</p>
+          <p>© 2025 AFAQ. Tous droits réservés.</p>
         </div>
       </div>
       <ToastContainer position="top-right" autoClose={3000} />

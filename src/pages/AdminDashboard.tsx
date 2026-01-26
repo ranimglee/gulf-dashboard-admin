@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState }from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -7,61 +7,100 @@ import { ArrowUp, ArrowDown, Users, FileText, MessageSquare } from 'lucide-react
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/admin/AppSidebar';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
-import ContentManager from '@/components/admin/ContentManager';
+import ContentManager from '@/components/admin/content/ContentManager';
 import UserManager from '@/components/admin/UserManager';
 import MessagesManager from '@/components/admin/MessagesManager';
 import SecuritySettings from '@/components/admin/SecuritySettings';
 
+import {
+  getTrafficStats,
+  getTotalVisitors,
+  getTotalArticles,
+  getCommentStats,
+} from '@/lib/api'; 
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [visitorData, setVisitorData] = useState([]);
+const [stats, setStats] = useState({
+  totalVisitors: 0,
+  visitorsChange: '+0%',
+  articles: 0,
+  messages: 0,
+  messagesChange: '+0%',
+  activeUsers: 0,
+  usersChange: '+0%',
+});
 
-  // Sample data for charts
-  const visitorData = [
-    { month: 'Jan', visitors: 4000 },
-    { month: 'Feb', visitors: 3000 },
-    { month: 'Mar', visitors: 5000 },
-    { month: 'Apr', visitors: 4500 },
-    { month: 'May', visitors: 6000 },
-    { month: 'Jun', visitors: 5500 },
-  ];
 
-  const trafficData = [
-    { name: 'Direct', value: 40, color: '#1A535C' },
-    { name: 'Search', value: 30, color: '#F7B32B' },
-    { name: 'Social', value: 20, color: '#FF6F61' },
-    { name: 'Email', value: 10, color: '#F4E1D2' },
-  ];
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
-  const statsCards = [
-    {
-      title: 'Total Visiteurs',
-      value: '28,000',
-      change: '+12%',
-      trend: 'up',
-      icon: Users,
-    },
-    {
-      title: 'Articles Publiés',
-      value: '156',
-      change: '+8%',
-      trend: 'up',
-      icon: FileText,
-    },
-    {
-      title: 'Messages',
-      value: '48',
-      change: '-3%',
-      trend: 'down',
-      icon: MessageSquare,
-    },
-    {
-      title: 'Utilisateurs Actifs',
-      value: '2,340',
-      change: '+15%',
-      trend: 'up',
-      icon: Users,
-    },
-  ];
+  const fetchStats = async () => {
+    try {
+      const [trafficRes, totalVisitorsRes, articlesRes, commentRes] = await Promise.all([
+        getTrafficStats(),
+        getTotalVisitors(),
+        getTotalArticles(),
+        getCommentStats(),
+      ]);
+
+      const traffic = trafficRes.data.map((item: any) => ({
+        month: item.month, // assume it's already like "Jan", "Feb", etc.
+        visitors: item.count,
+      }));
+
+      const visitorsStats = totalVisitorsRes.data; // { total: number, change: number, isUp: boolean }
+
+      const commentsStats = commentRes.data; // { totalComments: number, activeUsers: number }
+
+      setVisitorData(traffic);
+
+      setStats({
+        totalVisitors: visitorsStats.total,
+        visitorsChange: `${visitorsStats.change}%`,
+        articles: articlesRes.data,
+        messages: commentsStats.totalComments,
+        messagesChange: '-3%', // si tu ne l’as pas en backend, laisse temporairement
+        activeUsers: commentsStats.activeUsers,
+        usersChange: '+15%', // pareil ici
+      });
+    } catch (error) {
+      console.error('Erreur lors du chargement des statistiques', error);
+    }
+  };
+const statsCards = [
+  {
+    title: 'Total Visiteurs',
+    value: stats.totalVisitors ? stats.totalVisitors.toLocaleString() : '0',
+    change: stats.visitorsChange,
+    trend: stats.visitorsChange.startsWith('-') ? 'down' : 'up',
+    icon: Users,
+  },
+  {
+    title: 'Articles Publiés',
+    value: stats.articles?.toString() || '0',
+    change: '+8%', // temporairement statique
+    trend: 'up',
+    icon: FileText,
+  },
+  {
+    title: 'Messages',
+    value: stats.messages?.toString() || '0',
+    change: stats.messagesChange,
+    trend: stats.messagesChange.startsWith('-') ? 'down' : 'up',
+    icon: MessageSquare,
+  },
+  {
+    title: 'Utilisateurs Actifs',
+    value: stats.articles?.toString() || '0',
+    change: stats.usersChange,
+    trend: stats.usersChange.startsWith('-') ? 'down' : 'up',
+    icon: Users,
+  },
+];
+
 
   const renderContent = () => {
     switch (activeTab) {
@@ -114,7 +153,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
               <Card className="bg-white shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-[#1A535C]">Visiteurs Mensuels</CardTitle>
@@ -123,7 +162,7 @@ const AdminDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={450}>
                     <BarChart data={visitorData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                       <XAxis dataKey="month" stroke="#333333" />
@@ -142,42 +181,7 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-[#1A535C]">Sources de Trafic</CardTitle>
-                  <CardDescription className="text-[#333333]">
-                    Répartition des visiteurs par source
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={trafficData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {trafficData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1A535C', 
-                          border: 'none', 
-                          borderRadius: '8px',
-                          color: 'white'
-                        }} 
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+       
             </div>
           </div>
         );

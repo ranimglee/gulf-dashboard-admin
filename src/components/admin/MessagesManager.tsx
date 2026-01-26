@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { MessageSquare, Search, Mail, Clock, User, Reply, Archive, Trash2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
+import { api, API_BASE_URL } from '@/lib/api';
 
 interface Message {
   id: string;
@@ -40,35 +41,38 @@ const MessagesManager = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch Pending Comments
-  useEffect(() => {
-    const fetchPendingComments = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get('https://preview--gulf-dashboard-admin.lovable.app/api/comments/pending');
-        setPendingComments(response.data.map((comment: any) => ({
+useEffect(() => {
+  const fetchPendingComments = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/comments/pending'); // use api instance
+      setPendingComments(
+        response.data.map((comment: any) => ({
           id: comment.id,
           content: comment.content,
           author: comment.author,
           approved: comment.approved,
-          createdAt: comment.createdAt.split('T')[0], // Format date
-        })));
-      } catch (error: any) {
-        toast({
-          title: 'Erreur de chargement',
-          description: error.response?.data?.message || 'Impossible de récupérer les commentaires en attente.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchPendingComments();
-  }, []);
+          createdAt: comment.createdAt.split('T')[0],
+        }))
+      );
+    } catch (error: any) {
+      toast({
+        title: 'Erreur de chargement',
+        description: error.response?.data?.message || 'Impossible de récupérer les commentaires en attente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  fetchPendingComments();
+}, []);
+
 
   // Approve Comment
   const handleApproveComment = async (commentId: string) => {
     try {
-      await axios.put(`https://preview--gulf-dashboard-admin.lovable.app/api/comments/approve/${commentId}`);
+      await api.put(`/comments/approve/${commentId}`);
       setPendingComments(pendingComments.filter(comment => comment.id !== commentId));
       if (selectedComment?.id === commentId) {
         setSelectedComment(null);
