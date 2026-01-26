@@ -53,20 +53,25 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
   setIsCreateDialogOpen,
   toast,
 }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    auteur: '',
-    type: 'BLOG',
-    contenu: '',
-    file: null as File | null,
-    category: 'FINANCE',
-    fileType: 'PDF',
-    subTitle: '',
-    country: '',
-    language: 'ENGLISH', 
+ const [formData, setFormData] = useState({
+  title: '',
+  description: '',
+  auteur: '',
+  type: 'BLOG',
+  contenu: '',
+  file: null as File | null,
 
-  });
+  category: 'LEGAL', 
+  subCategory: '',   
+  subSubCategory: '',  
+   
+
+  fileType: 'PDF',
+  subTitle: '',
+  country: '',
+  language: 'ENGLISH',
+});
+
    
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -93,7 +98,10 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
       type: 'BLOG',
       contenu: '',
       file: null,
-      category: 'FINANCE',
+      category: 'LEGAL', 
+      subCategory:'',
+      subSubCategory: '',  
+
       fileType: 'PDF',
       subTitle: '',
       country: '',
@@ -114,7 +122,9 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
           type: 'BLOG',
           contenu: '',
           file: null,
-          category: 'FINANCE',
+          category: 'LEGAL', 
+          subCategory:'',
+          subSubCategory:'',
           fileType: 'PDF',
           subTitle: '',
           country: '',
@@ -210,16 +220,75 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
                 <select
                   className="border p-2 rounded w-full"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value, subCategory: '' })}
                   required
                   disabled={isSubmitting}
                 >
-                  <option value="FINANCE">Finance</option>
-                  <option value="JURIDIQUE">Juridique</option>
-                  <option value="GOUVERNANCE">Gouvernance</option>
-                  <option value="ETUDE_DE_CAS">Étude de cas</option>
+                 <option value="LEGAL">Juridique</option>
+                 <option value="DATA">Données</option>
+                 <option value="DIVERSE">Divers</option>
+                 <option value="STUDIES">Études</option>
+
                 </select>
               </div>
+              {/* Subcategory (depends on category) */}
+{['LEGAL', 'DIVERSE'].includes(formData.category) && (
+  <div>
+    <Label>Sous-catégorie</Label>
+    <select
+      className="border p-2 rounded w-full"
+      value={formData.subCategory}
+      onChange={(e) =>
+        setFormData({ ...formData, subCategory: e.target.value })
+      }
+      required
+      disabled={isSubmitting}
+    >
+      <option value="">-- Sélectionner --</option>
+
+      {formData.category === 'LEGAL' && (
+        <>
+          <option value="NATIONAL">National</option>
+          <option value="INTERNATIONAL">International</option>
+        </>
+      )}
+
+      {formData.category === 'DIVERSE' && (
+        <>
+          <option value="CASE_LAW">Jurisprudence</option>
+          <option value="OPINIONS">Opinions</option>
+          <option value="OTHER">Autre</option>
+        </>
+      )}
+
+      
+    </select>
+  </div>
+
+  
+)}
+{/* Sub-subcategory for NATIONAL */}
+{formData.subCategory === 'NATIONAL' && (
+  <div>
+    <Label>Pays</Label>
+    <select
+      className="border p-2 rounded w-full"
+      value={formData.subSubCategory}
+      onChange={(e) => setFormData({ ...formData, subSubCategory: e.target.value })}
+      required
+      disabled={isSubmitting}
+    >
+      <option value="">-- Sélectionner --</option>
+      <option value="EMIRATES">Émirats</option>
+      <option value="BAHRAIN">Bahreïn</option>
+      <option value="SAUDI_ARABIA">Arabie Saoudite</option>
+      <option value="OMAN">Oman</option>
+      <option value="QATAR">Qatar</option>
+      <option value="KUWAIT">Koweït</option>
+    </select>
+  </div>
+)}
+
               <div>
                 <Label>Type de fichier</Label>
                 <select

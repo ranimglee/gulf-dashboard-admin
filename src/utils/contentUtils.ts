@@ -10,6 +10,8 @@ interface CreateItemData {
   contenu: string;
   file: File | null;
   category: string;
+  subCategory:string;
+  subSubCategory:string;
   fileType: string;
   subTitle: string;
   country: string;
@@ -57,6 +59,9 @@ export const handleCreateItem = async (
       formData.append('titre', data.title);
       formData.append('description', data.description);
       formData.append('category', data.category);
+      formData.append('subCategory', data.subCategory);
+      formData.append('subSubCategory', data.subSubCategory);
+
       formData.append('fileType', data.fileType);
       formData.append('language', data.language); // ✅ include language
 
@@ -69,7 +74,7 @@ export const handleCreateItem = async (
         id: created.id?.toString() || Date.now().toString(),
         title: created.titre,
         description: created.description,
-        date: created.createdAt?.split('T')[0] || date,
+        createdAt: created.createdAt?.split('T')[0] || date,
         type: 'resource',
         category: created.category,
         fileType: created.fileType,
@@ -114,7 +119,7 @@ export const handleCreateItem = async (
           id: created.id?.toString() || Date.now().toString(),
           title: created.title,
           description: created.subTitle,
-          date,
+          createdAt:created.createdAt?.split('T')[0] || date,
           type: 'project',
           subTitle: created.subTitle,
           country: created.country,
@@ -162,7 +167,7 @@ export const handleCreateItem = async (
           id: created.id?.toString() || Date.now().toString(),
           title: created.title,
           description: created.description,
-          date,
+          createdAt: created.createdAt?.split('T')[0] || date,
           type: 'article',
           imageUrl: created.imageUrl || imageUrl,
           language: created.language || data.language, // ✅ added

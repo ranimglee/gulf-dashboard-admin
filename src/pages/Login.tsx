@@ -36,7 +36,7 @@ const Login = () => {
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('role', role);
       localStorage.removeItem('accessToken');
-localStorage.setItem('adminAuth', 'true'); // ✅ ADD THIS
+      localStorage.setItem('adminAuth', 'true'); 
 
       toast.success('Connexion réussie');
       navigate(redirectUrl, { replace: true });
