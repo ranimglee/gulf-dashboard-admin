@@ -160,7 +160,7 @@ const fetchAnalytics = async () => {
 };
 const statsCards = [
   {
-    title: "Visites totales",
+    title: "Visiteurs totales",
     value: dashboard?.totalVisitors ?? 0,
     icon: Users,
     trend: "up",
