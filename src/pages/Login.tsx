@@ -138,7 +138,7 @@ const Login = () => {
         </Card>
 
         <div className="text-center mt-8 text-sm text-[#333333]">
-          <p>© 2025 AFAQ. Tous droits réservés.</p>
+          <p>© 2026 AFAQ. Tous droits réservés.</p>
         </div>
       </div>
       <ToastContainer position="top-right" autoClose={3000} />

@@ -99,10 +99,49 @@ api.interceptors.response.use(
   }
 );
 
-// === API Endpoints ===
-export const getTrafficStats = () => api.get('/analytics/traffic');
-export const getTotalVisitors = () => api.get('/analytics/total-visitors-stats');
-export const getTotalArticles = () => api.get('/analytics/count-articles');
-export const getCommentStats = () => api.get('/analytics/stats');
-export const getUserNonAdmin = () => api.get('/analytics/users/non-admin');
-export const banUser = (id: string) => api.put(`/user/ban-user/${id}`);
+// ===============================
+// ANALYTICS API
+// ===============================
+
+export const getAnalyticsDashboard = () =>
+  api.get('/analytics/dashboard');
+
+export const getTrafficPerDay = (days = 30) =>
+  api.get(`/analytics/traffic/daily?days=${days}`);
+
+export const getTopPages = (limit = 10) =>
+  api.get(`/analytics/top-pages?limit=${limit}`);
+
+export const getTopArticles = () =>
+  api.get('/analytics/top-articles');
+export const getTopProjects = () =>
+  api.get('/analytics/top-projects');
+
+// ===============================
+// CONTENT / GLOBAL STATS
+// ===============================
+
+export const getTotalArticles = () =>
+  api.get('/analytics/count-articles');
+
+export const getTotalInitiatives = () =>
+  api.get('/analytics/count-initiatives');
+
+export const getTotalResources = () =>
+  api.get('/analytics/count-ressources');
+
+export const getCommentStats = () =>
+  api.get('/analytics/stats');
+
+// ===============================
+// USERS
+// ===============================
+
+export const getUserNonAdmin = () =>
+  api.get('/analytics/users/non-admin');
+
+export const banUser = (id: string) =>
+  api.put(`/user/ban-user/${id}`);
+export const getDeviceStats = () =>
+  api.get("/analytics/device-stats");
+
