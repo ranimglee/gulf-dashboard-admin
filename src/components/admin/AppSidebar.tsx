@@ -1,15 +1,13 @@
-
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { 
-  BarChart3, 
-  FileText, 
-  Users, 
-  MessageSquare, 
-  Settings, 
+import {
+  BarChart3,
+  FileText,
+  Users,
+  MessageSquare,
   Shield,
-  Home
 } from 'lucide-react';
+
 import {
   Sidebar,
   SidebarContent,
@@ -38,67 +36,107 @@ interface AppSidebarProps {
 export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
   const { state } = useSidebar();
   const location = useLocation();
+
   const isCollapsed = state === 'collapsed';
 
-  const handleTabClick = (item: typeof navigationItems[0]) => {
-    if (item.section) {
-      onTabChange(item.section);
-    }
+  const handleTabClick = (item: (typeof navigationItems)[0]) => {
+    if (item.section) onTabChange(item.section);
   };
 
-  const getNavClassName = (item: typeof navigationItems[0]) => {
-    const isActive = item.section ? activeTab === item.section : location.pathname === item.url;
-    return isActive 
-      ? 'bg-[#1A535C] text-white font-medium' 
-      : 'text-[#333333] hover:bg-[#F4E1D2] hover:text-[#1A535C]';
+  const isActiveItem = (item: (typeof navigationItems)[0]) => {
+    return item.section
+      ? activeTab === item.section
+      : location.pathname === item.url;
   };
 
   return (
-    <Sidebar className="border-r border-[#E5E7EB]">
+    <Sidebar className="border-r border-gray-100 bg-white">
       <SidebarContent className="bg-white">
-        <div className="p-4 border-b border-[#E5E7EB]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#1A535C] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
-            </div>
+
+        {/* BRAND */}
+        <div className="border-b border-gray-100 px-4 py-5">
+          <div className="flex items-center gap-3">
+
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden">
+  <img
+    src="/images/logo-back.png"
+    alt="AFAQ Logo"
+    className="h-full w-full object-contain p-1"
+  />
+</div>
+
             {!isCollapsed && (
-              <div>
-                <h2 className="font-bold text-[#1A535C]">AFAQ</h2>
-                <p className="text-xs text-[#333333]">Admin Portal</p>
+              <div className="leading-tight">
+                <h2 className="text-sm font-semibold text-[#1A535C]">
+                  AFAQ
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Admin Portal
+                </p>
               </div>
             )}
           </div>
         </div>
 
+        {/* NAVIGATION */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[#1A535C] font-medium">
-            Navigation
-          </SidebarGroupLabel>
+          {!isCollapsed && (
+            <SidebarGroupLabel className="px-2 pt-3 text-xs font-medium uppercase tracking-wider text-gray-400">
+              Navigation
+            </SidebarGroupLabel>
+          )}
+
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    {item.section ? (
-                      <button
-                        onClick={() => handleTabClick(item)}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${getNavClassName(item)}`}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </button>
-                    ) : (
-                      <NavLink
-                        to={item.url}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${getNavClassName(item)}`}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="space-y-1 px-2 py-3">
+
+              {navigationItems.map((item) => {
+                const active = isActiveItem(item);
+
+                const baseClass =
+                  'flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200';
+
+                const activeClass =
+                  'bg-[#1A535C] text-white shadow-sm';
+
+                const inactiveClass =
+                  'text-gray-600 hover:bg-gray-50 hover:text-[#1A535C]';
+
+                const className = `${baseClass} ${
+                  active ? activeClass : inactiveClass
+                }`;
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+
+                      {item.section ? (
+                        <button
+                          onClick={() => handleTabClick(item)}
+                          className={className}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!isCollapsed && (
+                            <span className="font-medium">
+                              {item.title}
+                            </span>
+                          )}
+                        </button>
+                      ) : (
+                        <NavLink to={item.url} className={className}>
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!isCollapsed && (
+                            <span className="font-medium">
+                              {item.title}
+                            </span>
+                          )}
+                        </NavLink>
+                      )}
+
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

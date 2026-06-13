@@ -14,7 +14,6 @@ export const api = axios.create({
 });
 
 // === Request Interceptor ===
-// === Request Interceptor ===
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
@@ -142,6 +141,8 @@ export const getUserNonAdmin = () =>
 
 export const banUser = (id: string) =>
   api.put(`/user/ban-user/${id}`);
+export const deleteUser = (id: string) =>
+  api.delete(`/user/${id}`);
 export const getDeviceStats = () =>
   api.get("/analytics/device-stats");
 

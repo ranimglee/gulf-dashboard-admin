@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MessageSquare, Search, Mail, Clock, User, Reply, Archive, Trash2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
 import { api, API_BASE_URL } from '@/lib/api';
 
 interface Message {
@@ -17,7 +16,6 @@ interface Message {
   message: string;
   date: string;
   status: 'new' | 'read' | 'replied' | 'archived';
-  priority: 'low' | 'medium' | 'high';
 }
 
 interface Comment {
@@ -33,13 +31,49 @@ const MessagesManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [messages, setMessages] = useState<Message[]>([
-    
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);  
   const [pendingComments, setPendingComments] = useState<Comment[]>([]);
   const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+// Fetch Contact Messages
+useEffect(() => {
+  const fetchMessages = async () => {
+    setIsLoading(true);
 
+    try {
+      const response = await api.get('/admin/contact-messages');
+
+      console.log(response.data);
+
+      setMessages(
+        response.data.map((msg: any) => ({
+          id: msg.id,
+
+          name: msg.fullName || 'Unknown',
+          email: msg.email || 'No email',
+          subject: msg.subject || 'No subject',
+          message: msg.message || '',
+
+          date: msg.createdAt
+            ? new Date(msg.createdAt).toLocaleDateString()
+            : '',
+
+          status: 'new',
+        }))
+      );
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de récupérer les messages.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchMessages();
+}, []);
   // Fetch Pending Comments
 useEffect(() => {
   const fetchPendingComments = async () => {
@@ -119,18 +153,7 @@ useEffect(() => {
     }
   };
 
-  const getPriorityBadgeColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+
 
   const handleUpdateMessageStatus = (messageId: string, newStatus: 'new' | 'read' | 'replied' | 'archived') => {
     setMessages(messages.map(message =>
@@ -142,15 +165,28 @@ useEffect(() => {
     });
   };
 
-  const handleDeleteMessage = (messageId: string) => {
+ const handleDeleteMessage = async (messageId: string) => {
+  try {
+    await api.delete(`/admin/contact-messages/${messageId}`);
+
     setMessages(messages.filter(message => message.id !== messageId));
+
     setSelectedMessage(null);
+
     toast({
       title: 'Message supprimé',
       description: 'Le message a été supprimé avec succès.',
     });
-  };
-
+  } catch (error: any) {
+    toast({
+      title: 'Erreur',
+      description:
+        error.response?.data?.message ||
+        'Impossible de supprimer le message.',
+      variant: 'destructive',
+    });
+  }
+};
   const getStatusCounts = () => {
     return {
       total: messages.length + pendingComments.length,
@@ -162,345 +198,424 @@ useEffect(() => {
 
   const counts = getStatusCounts();
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-[#1A535C]">Gestion des Messages</h2>
-          <p className="text-[#333333]">Gérer les messages et commentaires en attente</p>
-        </div>
+ return (
+  <div className="space-y-8">
+
+    {/* HEADER */}
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h2 className="text-4xl font-bold text-[#1A535C] mb-2">
+          Gestion des messages
+        </h2>
+
+        <p className="text-gray-500 text-base">
+          Gérez les messages de contact et les commentaires
+          de la plateforme AFAQ.
+        </p>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-white shadow-sm border-l-4 border-l-[#1A535C]">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#333333]">Total Messages</p>
-                <p className="text-2xl font-bold text-[#1A535C]">{counts.total}</p>
-              </div>
-              <MessageSquare className="h-8 w-8 text-[#1A535C]" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white shadow-sm border-l-4 border-l-[#FF6F61]">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#333333]">Nouveaux</p>
-                <p className="text-2xl font-bold text-[#FF6F61]">{counts.new}</p>
-              </div>
-              <Mail className="h-8 w-8 text-[#FF6F61]" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white shadow-sm border-l-4 border-l-[#F7B32B]">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#333333]">Lus</p>
-                <p className="text-2xl font-bold text-[#F7B32B]">{counts.read}</p>
-              </div>
-              <Clock className="h-8 w-8 text-[#F7B32B]" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white shadow-sm border-l-4 border-l-green-500">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#333333]">Répondus</p>
-                <p className="text-2xl font-bold text-green-600">{counts.replied}</p>
-              </div>
-              <Reply className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <div className="hidden md:flex items-center gap-2 bg-[#1A535C]/10 px-4 py-2 rounded-2xl">
+        <MessageSquare className="w-5 h-5 text-[#1A535C]" />
 
-      {/* Search and Filter */}
-      <Card className="bg-white shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#333333] h-4 w-4" />
-              <Input
-                placeholder="Rechercher par nom, email, sujet ou contenu..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-[#E5E7EB] focus:border-[#1A535C]"
-              />
+        <span className="text-sm font-medium text-[#1A535C]">
+          Centre de communication
+        </span>
+      </div>
+    </div>
+
+    {/* STATS */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+
+      {/* TOTAL */}
+      <Card className="border-0 shadow-lg rounded-3xl overflow-hidden">
+        <CardContent className="p-6 relative">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-[#1A535C]/5 rounded-full blur-2xl" />
+
+          <div className="flex items-center justify-between relative z-10">
+            <div>
+              <p className="text-sm text-gray-500 mb-2">
+                Total
+              </p>
+
+              <h3 className="text-4xl font-bold text-[#1A535C]">
+                {counts.total}
+              </h3>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant={filterStatus === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterStatus('all')}
-                className={filterStatus === 'all' ? 'bg-[#1A535C] text-white' : ''}
-              >
-                Tous
-              </Button>
-              <Button
-                variant={filterStatus === 'new' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterStatus('new')}
-                className={filterStatus === 'new' ? 'bg-[#FF6F61] text-white' : ''}
-              >
-                Nouveaux
-              </Button>
-              <Button
-                variant={filterStatus === 'read' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterStatus('read')}
-                className={filterStatus === 'read' ? 'bg-[#F7B32B] text-[#333333]' : ''}
-              >
-                Lus
-              </Button>
+
+            <div className="w-14 h-14 rounded-2xl bg-[#1A535C]/10 flex items-center justify-center">
+              <MessageSquare className="w-7 h-7 text-[#1A535C]" />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Messages and Comments List */}
-      <Card className="bg-white shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-[#1A535C]">Messages et Commentaires ({filteredMessages.length + (filterStatus === 'new' || filterStatus === 'all' ? filteredComments.length : 0)})</CardTitle>
-          <CardDescription className="text-[#333333]">
-            Liste des messages et commentaires en attente
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="text-center py-12">
-              <p className="text-[#1A535C]">Chargement des données...</p>
+      {/* NEW */}
+      <Card className="border-0 shadow-lg rounded-3xl overflow-hidden">
+        <CardContent className="p-6 relative">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-[#FF6F61]/10 rounded-full blur-2xl" />
+
+          <div className="flex items-center justify-between relative z-10">
+            <div>
+              <p className="text-sm text-gray-500 mb-2">
+                Nouveaux
+              </p>
+
+              <h3 className="text-4xl font-bold text-[#FF6F61]">
+                {counts.new}
+              </h3>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {(filterStatus === 'all' || filterStatus === 'new') && filteredComments.map((comment) => (
-                <div
-                  key={comment.id}
-                  className="p-4 border-b border-[#E5E7EB] hover:bg-[#F4E1D2] cursor-pointer transition-colors"
-                  onClick={() => setSelectedComment(comment)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <User className="h-4 w-4 text-[#1A535C]" />
-                        <span className="font-medium text-[#1A535C]">{comment.author}</span>
-                      </div>
-                      <p className="text-sm text-[#333333] line-clamp-2">{comment.content}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Clock className="h-4 w-4 text-[#333333]" />
-                        <span className="text-sm text-[#333333]">{comment.createdAt}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 ml-4">
-                      <Badge className="bg-[#FF6F61] text-white">En attente</Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent triggering dialog
-                          handleApproveComment(comment.id);
-                        }}
-                        className="border-[#1A535C] text-[#1A535C] hover:bg-[#1A535C] hover:text-white"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Approuver
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {filteredMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className="p-4 border-b border-[#E5E7EB] hover:bg-[#F4E1D2] cursor-pointer transition-colors"
-                  onClick={() => setSelectedMessage(message)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <User className="h-4 w-4 text-[#1A535C]" />
-                        <span className="font-medium text-[#1A535C]">{message.name}</span>
-                        <span className="text-sm text-[#333333]">({message.email})</span>
-                      </div>
-                      <h4 className="font-medium text-[#333333] mb-1">{message.subject}</h4>
-                      <p className="text-sm text-[#333333] line-clamp-2">{message.message}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Clock className="h-4 w-4 text-[#333333]" />
-                        <span className="text-sm text-[#333333]">{message.date}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 ml-4">
-                      <Badge className={getStatusBadgeColor(message.status)}>
-                        {message.status === 'new' && 'Nouveau'}
-                        {message.status === 'read' && 'Lu'}
-                        {message.status === 'replied' && 'Répondu'}
-                        {message.status === 'archived' && 'Archivé'}
-                      </Badge>
-                      <Badge className={getPriorityBadgeColor(message.priority)}>
-                        {message.priority === 'high' && 'Haute'}
-                        {message.priority === 'medium' && 'Moyenne'}
-                        {message.priority === 'low' && 'Basse'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
+
+            <div className="w-14 h-14 rounded-2xl bg-[#FF6F61]/10 flex items-center justify-center">
+              <Mail className="w-7 h-7 text-[#FF6F61]" />
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Message Details Dialog */}
-      {selectedMessage && (
-        <Dialog open={!!selectedMessage} onOpenChange={() => setSelectedMessage(null)}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle className="text-[#1A535C]">Détails du Message</DialogTitle>
-              <DialogDescription className="text-[#333333]">
-                Message de {selectedMessage.name}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-[#333333]">Nom</label>
-                  <p className="text-[#1A535C] font-medium">{selectedMessage.name}</p>
+      {/* READ */}
+      <Card className="border-0 shadow-lg rounded-3xl overflow-hidden">
+        <CardContent className="p-6 relative">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-[#F7B32B]/10 rounded-full blur-2xl" />
+
+          <div className="flex items-center justify-between relative z-10">
+            <div>
+              <p className="text-sm text-gray-500 mb-2">
+                Lus
+              </p>
+
+              <h3 className="text-4xl font-bold text-[#F7B32B]">
+                {counts.read}
+              </h3>
+            </div>
+
+            <div className="w-14 h-14 rounded-2xl bg-[#F7B32B]/10 flex items-center justify-center">
+              <Clock className="w-7 h-7 text-[#F7B32B]" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* REPLIED */}
+      <Card className="border-0 shadow-lg rounded-3xl overflow-hidden">
+        <CardContent className="p-6 relative">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-green-100 rounded-full blur-2xl" />
+
+          <div className="flex items-center justify-between relative z-10">
+            <div>
+              <p className="text-sm text-gray-500 mb-2">
+                Répondus
+              </p>
+
+              <h3 className="text-4xl font-bold text-green-600">
+                {counts.replied}
+              </h3>
+            </div>
+
+            <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
+              <Reply className="w-7 h-7 text-green-600" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    {/* SEARCH */}
+    <Card className="border-0 shadow-lg rounded-3xl">
+      <CardContent className="p-5">
+
+        <div className="flex flex-col md:flex-row gap-4">
+          
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+
+            <Input
+              placeholder="Rechercher un message ou commentaire..."
+              value={searchTerm}
+              onChange={(e) =>
+                setSearchTerm(e.target.value)
+              }
+              className="h-12 pl-12 rounded-2xl border-gray-200 focus-visible:ring-[#1A535C] focus-visible:ring-2"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={
+                filterStatus === 'all'
+                  ? 'default'
+                  : 'outline'
+              }
+              onClick={() =>
+                setFilterStatus('all')
+              }
+              className={`rounded-xl ${
+                filterStatus === 'all'
+                  ? 'bg-[#1A535C] text-white'
+                  : ''
+              }`}
+            >
+              Tous
+            </Button>
+
+            <Button
+              variant={
+                filterStatus === 'new'
+                  ? 'default'
+                  : 'outline'
+              }
+              onClick={() =>
+                setFilterStatus('new')
+              }
+              className={`rounded-xl ${
+                filterStatus === 'new'
+                  ? 'bg-[#FF6F61] text-white'
+                  : ''
+              }`}
+            >
+              Nouveaux
+            </Button>
+
+            <Button
+              variant={
+                filterStatus === 'read'
+                  ? 'default'
+                  : 'outline'
+              }
+              onClick={() =>
+                setFilterStatus('read')
+              }
+              className={`rounded-xl ${
+                filterStatus === 'read'
+                  ? 'bg-[#F7B32B] text-black'
+                  : ''
+              }`}
+            >
+              Lus
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* ========================= */}
+    {/* MESSAGES SECTION */}
+    {/* ========================= */}
+
+ {/* ========================= */}
+{/* MESSAGES + COMMENTS GRID */}
+{/* ========================= */}
+
+<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
+  {/* ========================= */}
+  {/* MESSAGES SECTION */}
+  {/* ========================= */}
+
+<Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white h-full flex flex-col">
+    <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-[#1A535C]/5 to-transparent">
+
+      <div className="flex items-center justify-between">
+        <div>
+          <CardTitle className="text-2xl text-[#1A535C] flex items-center gap-3">
+
+            <div className="w-12 h-12 rounded-2xl bg-[#1A535C]/10 flex items-center justify-center">
+              <Mail className="w-6 h-6 text-[#1A535C]" />
+            </div>
+
+            Messages
+          </CardTitle>
+
+          <CardDescription className="text-gray-500 mt-2">
+            Messages reçus depuis le formulaire de contact.
+          </CardDescription>
+        </div>
+
+        <Badge className="bg-[#1A535C] text-white px-4 py-2 rounded-full">
+          {filteredMessages.length}
+        </Badge>
+      </div>
+    </CardHeader>
+
+<CardContent className="p-0 flex-1">
+      {filteredMessages.length === 0 ? (
+        <div className="py-20 text-center">
+          <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+
+          <p className="text-gray-500">
+            Aucun message trouvé.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-100 max-h-[850px] overflow-y-auto">
+
+          {filteredMessages.map((message) => (
+            <div
+              key={message.id}
+              className="p-6 hover:bg-[#fafcfc] transition cursor-pointer"
+              onClick={() =>
+                setSelectedMessage(message)
+              }
+            >
+              <div className="flex items-start justify-between gap-4">
+
+                <div className="flex gap-4 flex-1">
+
+                  <div className="w-14 h-14 rounded-2xl bg-[#1A535C]/10 flex items-center justify-center text-[#1A535C] font-bold text-lg shrink-0">
+                    {message.name.charAt(0)}
+                  </div>
+
+                  <div className="flex-1">
+
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <h3 className="font-semibold text-[#1A535C]">
+                        {message.name}
+                      </h3>
+
+                      <span className="text-gray-400 text-sm">
+                        {message.email}
+                      </span>
+                    </div>
+
+                    <h4 className="font-medium text-gray-800 mb-2">
+                      {message.subject}
+                    </h4>
+
+                    <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">
+                      {message.message}
+                    </p>
+
+                    <div className="flex items-center gap-2 mt-4 text-sm text-gray-400">
+                      <Clock className="w-4 h-4" />
+                      {message.date}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-[#333333]">Email</label>
-                  <p className="text-[#1A535C]">{selectedMessage.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#333333]">Date</label>
-                  <p className="text-[#333333]">{selectedMessage.date}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#333333]">Priorité</label>
-                  <Badge className={getPriorityBadgeColor(selectedMessage.priority)}>
-                    {selectedMessage.priority === 'high' && 'Haute'}
-                    {selectedMessage.priority === 'medium' && 'Moyenne'}
-                    {selectedMessage.priority === 'low' && 'Basse'}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-[#333333]">Sujet</label>
-                <p className="text-[#1A535C] font-medium">{selectedMessage.subject}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-[#333333]">Message</label>
-                <div className="bg-[#F4E1D2] p-4 rounded-lg">
-                  <p className="text-[#333333] whitespace-pre-wrap">{selectedMessage.message}</p>
-                </div>
-              </div>
-              <div className="flex justify-between pt-4">
-                <div className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleUpdateMessageStatus(selectedMessage.id, 'read')}
-                    className="border-[#E5E7EB] hover:bg-[#F4E1D2]"
-                  >
-                    Marquer comme lu
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleUpdateMessageStatus(selectedMessage.id, 'replied')}
-                    className="border-[#E5E7EB] hover:bg-[#F4E1D2]"
-                  >
-                    <Reply className="h-4 w-4 mr-1" />
-                    Répondre
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleUpdateMessageStatus(selectedMessage.id, 'archived')}
-                    className="border-[#E5E7EB] hover:bg-[#F4E1D2]"
-                  >
-                    <Archive className="h-4 w-4 mr-1" />
-                    Archiver
-                  </Button>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDeleteMessage(selectedMessage.id)}
-                  className="border-[#FF6F61] text-[#FF6F61] hover:bg-[#FF6F61] hover:text-white"
+
+                <Badge
+                  className={`${getStatusBadgeColor(
+                    message.status
+                  )} rounded-full px-4 py-1`}
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Supprimer
-                </Button>
+                  {message.status === 'new' &&
+                    'Nouveau'}
+                  {message.status === 'read' &&
+                    'Lu'}
+                  {message.status === 'replied' &&
+                    'Répondu'}
+                  {message.status === 'archived' &&
+                    'Archivé'}
+                </Badge>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          ))}
+        </div>
       )}
+    </CardContent>
+  </Card>
 
-      {/* Comment Details Dialog */}
-      {selectedComment && (
-        <Dialog open={!!selectedComment} onOpenChange={() => setSelectedComment(null)}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle className="text-[#1A535C]">Détails du Commentaire</DialogTitle>
-              <DialogDescription className="text-[#333333]">
-                Commentaire de {selectedComment.author}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-[#333333]">Auteur</label>
-                  <p className="text-[#1A535C] font-medium">{selectedComment.author}</p>
+  {/* ========================= */}
+  {/* COMMENTS SECTION */}
+  {/* ========================= */}
+
+<Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white h-full flex flex-col">
+    <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-[#FF6F61]/5 to-transparent">
+
+      <div className="flex items-center justify-between">
+        <div>
+          <CardTitle className="text-2xl text-[#1A535C] flex items-center gap-3">
+
+            <div className="w-12 h-12 rounded-2xl bg-[#FF6F61]/10 flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-[#FF6F61]" />
+            </div>
+
+            Commentaires
+          </CardTitle>
+
+          <CardDescription className="text-gray-500 mt-2">
+            Commentaires en attente d’approbation.
+          </CardDescription>
+        </div>
+
+        <Badge className="bg-[#FF6F61] text-white px-4 py-2 rounded-full">
+          {filteredComments.length}
+        </Badge>
+      </div>
+    </CardHeader>
+
+<CardContent className="p-0 flex-1">
+      {filteredComments.length === 0 ? (
+        <div className="py-20 text-center">
+          <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+
+          <p className="text-gray-500">
+            Aucun commentaire en attente.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-100 max-h-[850px] overflow-y-auto">
+
+          {filteredComments.map((comment) => (
+            <div
+              key={comment.id}
+              className="p-6 hover:bg-[#fff9f8] transition cursor-pointer"
+              onClick={() =>
+                setSelectedComment(comment)
+              }
+            >
+              <div className="flex items-start justify-between gap-4">
+
+                <div className="flex gap-4 flex-1">
+
+                  <div className="w-14 h-14 rounded-2xl bg-[#FF6F61]/10 flex items-center justify-center text-[#FF6F61] font-bold text-lg shrink-0">
+                    {comment.author.charAt(0)}
+                  </div>
+
+                  <div className="flex-1">
+
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-[#1A535C]">
+                        {comment.author}
+                      </h3>
+
+                      <Badge className="bg-[#FF6F61] text-white rounded-full">
+                        En attente
+                      </Badge>
+                    </div>
+
+                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                      {comment.content}
+                    </p>
+
+                    <div className="flex items-center gap-2 mt-4 text-sm text-gray-400">
+                      <Clock className="w-4 h-4" />
+                      {comment.createdAt}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-[#333333]">Date</label>
-                  <p className="text-[#333333]">{selectedComment.createdAt}</p>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-[#333333]">Contenu</label>
-                <div className="bg-[#F4E1D2] p-4 rounded-lg">
-                  <p className="text-[#333333] whitespace-pre-wrap">{selectedComment.content}</p>
-                </div>
-              </div>
-              <div className="flex justify-between pt-4">
+
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleApproveComment(selectedComment.id)}
-                  className="border-[#1A535C] text-[#1A535C] hover:bg-[#1A535C] hover:text-white"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleApproveComment(
+                      comment.id
+                    );
+                  }}
+                  className="rounded-xl border-green-200 text-green-700 hover:bg-green-600 hover:text-white"
                 >
-                  <CheckCircle className="h-4 w-4 mr-1" />
+                  <CheckCircle className="w-4 h-4 mr-2" />
                   Approuver
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPendingComments(pendingComments.filter(comment => comment.id !== selectedComment.id));
-                    setSelectedComment(null);
-                    toast({
-                      title: 'Commentaire supprimé',
-                      description: 'Le commentaire a été supprimé avec succès.',
-                    });
-                  }}
-                  className="border-[#FF6F61] text-[#FF6F61] hover:bg-[#FF6F61] hover:text-white"
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Supprimer
-                </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          ))}
+        </div>
       )}
-    </div>
-  );
+    </CardContent>
+  </Card>
+</div>
+  </div>
+);
 };
 
 export default MessagesManager;

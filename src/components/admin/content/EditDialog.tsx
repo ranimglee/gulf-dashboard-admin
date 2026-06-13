@@ -38,6 +38,7 @@ interface EditDialogProps {
   projects: ContentItem[];
   resources: ContentItem[];
   toast: ToastFunction;
+
 }
 
 const EditDialog: React.FC<EditDialogProps> = ({
