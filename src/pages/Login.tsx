@@ -236,7 +236,7 @@ const Login = () => {
 <div className="flex justify-center py-4 bg-white border border-gray-200 rounded-xl shadow-sm">
   <Turnstile
     key={turnstileKey}
-    sitekey="0x4AAAAAADT08I6I0OwNbFCS"
+    sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
     theme="light"
     appearance="always"
     onVerify={(token) => setCaptchaToken(token)}
